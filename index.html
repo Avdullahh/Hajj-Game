@@ -27,7 +27,7 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='%23C8972A' stroke-width='0.3' opacity='0.12'%3E%3Cpolygon points='40,5 75,27.5 75,52.5 40,75 5,52.5 5,27.5'/%3E%3Cpolygon points='40,15 65,30 65,50 40,65 15,50 15,30'/%3E%3Cline x1='40' y1='5' x2='40' y2='15'/%3E%3Cline x1='75' y1='27.5' x2='65' y2='30'/%3E%3Cline x1='75' y1='52.5' x2='65' y2='50'/%3E%3Cline x1='40' y1='75' x2='40' y2='65'/%3E%3Cline x1='5' y1='52.5' x2='15' y2='50'/%3E%3Cline x1='5' y1='27.5' x2='15' y2='30'/%3E%3C/g%3E%3C/svg%3E");
     pointer-events: none; z-index: 0;
   }
-  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 16px; }
+  .app { position: relative; z-index: 1; width: 100%; max-width: 480px; margin: 0 auto; padding: 16px; }
 
   /* NAV */
   .nav { display: flex; gap: 4px; margin-bottom: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; }
@@ -289,6 +289,38 @@
   /* HOME CTA */
   .home-cta { width: 100%; background: linear-gradient(135deg,#1a3a2a,#0d2018); border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal-light); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; margin-top: 16px; }
   .home-cta:hover { box-shadow: 0 4px 16px rgba(42,170,138,0.2); }
+
+  button, input, select, textarea { min-height: 44px; }
+  button, input[type=button], input[type=submit], input[type=reset], input[type=checkbox], input[type=radio] { min-width: 44px; }
+  input, select, textarea { font-size: 16px; }
+  input[type=checkbox], input[type=radio] { min-width: 44px; min-height: 44px; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible,
+  [onclick]:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 2px; }
+  .nav-btn:focus-visible:not(.active), .nav-btn:active:not(.active) { color: var(--text); }
+  .day-nav-btn:focus-visible:not(:disabled), .day-nav-btn:active:not(:disabled) { border-color: var(--gold-dim); color: var(--gold); }
+  .task-item:active, .task-partial:active, .log-item:active, .memory-item:active { border-color: var(--gold-dim); }
+  .task-action-btn.edit:focus-visible, .task-action-btn.edit:active { border-color: var(--gold-dim); color: var(--gold); background: rgba(200,151,42,0.08); }
+  .task-action-btn.del:focus-visible, .task-action-btn.del:active,
+  .zone-round-delete:focus-visible, .zone-round-delete:active,
+  .evidence-delete:focus-visible, .evidence-delete:active { border-color: var(--red); color: var(--red-light); background: rgba(122,32,32,0.1); }
+  .task-edit-save:focus-visible, .task-edit-save:active,
+  .add-task-submit:focus-visible, .add-task-submit:active,
+  .zone-round-add:focus-visible, .zone-round-add:active { background: rgba(200,151,42,0.25); }
+  .task-edit-cancel:focus-visible, .task-edit-cancel:active,
+  .add-task-cancel-btn:focus-visible, .add-task-cancel-btn:active { border-color: var(--red); color: var(--red-light); }
+  .add-task-toggle:focus-visible, .add-task-toggle:active { border-color: var(--gold-dim); color: var(--gold-dim); }
+  .submit-btn:focus-visible, .submit-btn:active,
+  .setup-start:focus-visible, .setup-start:active { box-shadow: 0 4px 20px rgba(200,151,42,0.3); }
+  .levelup-close:focus-visible, .levelup-close:active { background: var(--gold); }
+  .reopen-btn:focus-visible, .reopen-btn:active { border-color: var(--gold-dim); color: var(--text); }
+  .evidence-add:focus-visible, .evidence-add:active { background: rgba(42,122,106,0.28); }
+  .memory-day-header:active { color: var(--gold); }
+  .home-cta:focus-visible, .home-cta:active { box-shadow: 0 4px 16px rgba(42,170,138,0.2); }
+  .task-check, .task-copy, .log-item, .memory-item { min-height: 44px; }
+  .task-check { min-width: 44px; }
+  .zone-round-slider { min-height: 44px; }
+  .day-nav, .task-partial-top, .pct-input-row, .zone-round-row, .evidence-card-top, .memory-item-top { flex-wrap: wrap; }
+  .task-copy, .log-bar-wrap, .evidence-card-text, .memory-item-label { min-width: 0; }
 </style>
 </head>
 <body>
@@ -457,13 +489,110 @@ const LEVELS = [
 
 let state = {};
 let viewDayIdx = 0;
+const STORAGE_KEY = 'hajj_rpg_v3';
+
+function safeGetStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (err) {
+    console.warn('تعذر قراءة التخزين المحلي:', err);
+    return null;
+  }
+}
+
+function safeSetStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    console.warn('تعذر حفظ البيانات في التخزين المحلي:', err);
+    return false;
+  }
+}
 
 function loadState() {
-  const s = localStorage.getItem('hajj_rpg_v3');
-  if (s) { state = JSON.parse(s); return true; }
+  const s = safeGetStorage(STORAGE_KEY);
+  if (s) {
+    try {
+      state = JSON.parse(s);
+      return true;
+    } catch (err) {
+      console.warn('تعذر قراءة بيانات الموسم المحفوظة:', err);
+    }
+  }
   return false;
 }
-function saveState() { localStorage.setItem('hajj_rpg_v3', JSON.stringify(state)); }
+function saveState() { return safeSetStorage(STORAGE_KEY, JSON.stringify(state)); }
+
+function $(id) { return document.getElementById(id); }
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function setEmpty(container, message, padding) {
+  container.innerHTML = `<div class="empty"${padding ? ` style="padding:${padding}"` : ''}>${message}</div>`;
+}
+function renderList(container, items, emptyMessage, renderItem, padding) {
+  container.innerHTML = '';
+  if (!items.length) {
+    setEmpty(container, emptyMessage, padding);
+    return;
+  }
+  items.forEach(item => container.appendChild(renderItem(item)));
+}
+function ensureObject(parent, key) {
+  if (!parent[key]) parent[key] = {};
+  return parent[key];
+}
+function ensureArray(parent, key) {
+  if (!Array.isArray(parent[key])) parent[key] = [];
+  return parent[key];
+}
+function cloneItems(items) {
+  return (items || []).map(item => ({ ...item }));
+}
+function makeId(prefix) { return prefix + Date.now(); }
+function earnedXP(xp, pct) { return Math.round(xp * pct / 100); }
+function xpToastText(xp, scope) { return scope === 'base' ? '+'+xp+' XP' : '+'+xp+' Ù…ØªØ§Ø¨Ø¹Ø©'; }
+function readinessColor(pct, strong = false) {
+  if (pct >= 90) return strong ? 'var(--teal)' : 'var(--teal-light)';
+  if (pct >= 70) return strong ? 'var(--gold)' : 'var(--gold-light)';
+  return 'var(--red-light)';
+}
+function selectActiveButton(buttons, activeBtn) {
+  buttons.forEach(btn => btn.classList.remove('active'));
+  activeBtn.classList.add('active');
+}
+function clearActive(selector) {
+  document.querySelectorAll(selector).forEach(node => node.classList.remove('active'));
+}
+function controls(root, selectors) {
+  return Object.fromEntries(Object.entries(selectors).map(([name, selector]) => [name, root.querySelector(selector)]));
+}
+function hideSetup() { $('setupScreen').style.display = 'none'; }
+function validTotalDays(value) {
+  const days = parseInt(value, 10);
+  return days >= 1 && days <= 30 ? days : null;
+}
+function getDayCollection(idx, submittedKey, draftKey) {
+  if (Array.isArray(state.days?.[idx]?.[submittedKey])) return state.days[idx][submittedKey];
+  if (Array.isArray((state[draftKey]||{})[idx])) return state[draftKey][idx];
+  return [];
+}
+function deleteDraftItem(draftKey, dayIdx, itemId) {
+  if (!state[draftKey]?.[dayIdx]) return false;
+  state[draftKey][dayIdx] = state[draftKey][dayIdx].filter(item => item.id !== itemId);
+  saveState();
+  return true;
+}
+function replaceTask(tasks, taskId, patch) {
+  return tasks.map(task => task.id === taskId ? { ...task, ...patch } : task);
+}
+function removeTask(tasks, taskId) {
+  return tasks.filter(task => task.id !== taskId);
+}
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({
@@ -549,7 +678,7 @@ function calcDayXP(checks, pillars) {
   pillars.forEach(p => p.tasks.forEach(t => {
     total++;
     const v = getCheckValue(checks, t.id);
-    const earned = Math.round(t.xp * v / 100);
+    const earned = earnedXP(t.xp, v);
     if (t._scope === 'base') {
       baseTotal++;
       baseXP += earned;
@@ -570,9 +699,7 @@ function normalizePct(value) {
 }
 
 function getZoneRoundsForDay(idx) {
-  if (Array.isArray(state.days?.[idx]?.zoneRounds)) return state.days[idx].zoneRounds;
-  if (Array.isArray((state.zoneRoundsDrafts||{})[idx])) return state.zoneRoundsDrafts[idx];
-  return [];
+  return getDayCollection(idx, 'zoneRounds', 'zoneRoundsDrafts');
 }
 
 function calcReadiness(rounds) {
@@ -581,10 +708,9 @@ function calcReadiness(rounds) {
 }
 
 function addZoneRound(dayIdx, name, readiness, note, type) {
-  if (!state.zoneRoundsDrafts) state.zoneRoundsDrafts = {};
-  if (!Array.isArray(state.zoneRoundsDrafts[dayIdx])) state.zoneRoundsDrafts[dayIdx] = [];
-  state.zoneRoundsDrafts[dayIdx].push({
-    id: 'round_'+Date.now(),
+  const drafts = ensureObject(state, 'zoneRoundsDrafts');
+  ensureArray(drafts, dayIdx).push({
+    id: makeId('round_'),
     name,
     type: type || 'أخرى',
     readiness: normalizePct(readiness),
@@ -605,55 +731,39 @@ function calcReadinessBreakdown(rounds) {
 }
 
 function deleteZoneRound(dayIdx, roundId) {
-  if (!state.zoneRoundsDrafts?.[dayIdx]) return;
-  state.zoneRoundsDrafts[dayIdx] = state.zoneRoundsDrafts[dayIdx].filter(round => round.id !== roundId);
-  saveState();
-  updateAllUI();
+  if (deleteDraftItem('zoneRoundsDrafts', dayIdx, roundId)) updateAllUI();
 }
 
 function buildZoneRoundCard(round, dayIdx, submitted) {
-  const card = document.createElement('div');
-  card.className = 'zone-round-card';
+  const card = el('div', 'zone-round-card');
 
-  const top = document.createElement('div');
-  top.className = 'zone-round-card-top';
+  const top = el('div', 'zone-round-card-top');
 
-  const name = document.createElement('div');
-  name.className = 'zone-round-card-name';
-  name.textContent = round.name;
+  const name = el('div', 'zone-round-card-name', round.name);
 
-  const typeBadge = document.createElement('div');
-  typeBadge.className = 'zone-round-card-type';
-  typeBadge.textContent = round.type || 'أخرى';
+  const typeBadge = el('div', 'zone-round-card-type', round.type || 'أخرى');
 
-  const pct = document.createElement('div');
-  pct.className = 'zone-round-card-pct';
-  pct.textContent = normalizePct(round.readiness) + '%';
+  const pctValue = normalizePct(round.readiness);
+  const pct = el('div', 'zone-round-card-pct', pctValue + '%');
 
   top.append(name, typeBadge, pct);
   if (!submitted) {
-    const del = document.createElement('button');
-    del.className = 'zone-round-delete';
-    del.textContent = '✕';
+    const del = el('button', 'zone-round-delete', '✕');
     del.title = 'احذف الجولة';
     del.onclick = () => deleteZoneRound(dayIdx, round.id);
     top.appendChild(del);
   }
 
-  const bar = document.createElement('div');
-  bar.className = 'zone-round-card-bar';
-  const fill = document.createElement('div');
-  fill.className = 'zone-round-card-fill';
-  fill.style.width = normalizePct(round.readiness) + '%';
-  fill.style.background = normalizePct(round.readiness) >= 90 ? 'var(--teal)' : normalizePct(round.readiness) >= 70 ? 'var(--gold)' : 'var(--red-light)';
+  const bar = el('div', 'zone-round-card-bar');
+  const fill = el('div', 'zone-round-card-fill');
+  fill.style.width = pctValue + '%';
+  fill.style.background = readinessColor(pctValue, true);
   bar.appendChild(fill);
 
   card.append(top, bar);
 
   if (round.note) {
-    const note = document.createElement('div');
-    note.className = 'zone-round-card-note';
-    note.textContent = round.note;
+    const note = el('div', 'zone-round-card-note', round.note);
     card.appendChild(note);
   }
 
@@ -664,22 +774,17 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
   const rounds = getZoneRoundsForDay(dayIdx);
   const pct = calcReadiness(rounds);
 
-  const box = document.createElement('div');
-  box.className = 'zone-rounds-box';
+  const box = el('div', 'zone-rounds-box');
 
-  const head = document.createElement('div');
-  head.className = 'zone-rounds-head';
+  const head = el('div', 'zone-rounds-head');
   head.innerHTML = `<div class="zone-rounds-title">📊 جولات جاهزية الزون</div><div class="zone-rounds-score">${pct}%</div>`;
 
-  const hint = document.createElement('div');
-  hint.className = 'zone-rounds-hint';
-  hint.textContent = 'كل جولة مستقلة باسمها ونسبة جاهزيتها وملاحظاتها، ولا تؤثر على XP أو اليوم المثالي.';
+  const hint = el('div', 'zone-rounds-hint', 'كل جولة مستقلة باسمها ونسبة جاهزيتها وملاحظاتها، ولا تؤثر على XP أو اليوم المثالي.');
 
   box.append(head, hint);
 
   if (!submitted) {
-    const form = document.createElement('div');
-    form.className = 'zone-round-form';
+    const form = el('div', 'zone-round-form');
     form.innerHTML = `
       <input class="zone-round-name" type="text" placeholder="اسم الجولة">
       <div class="round-type-selector">
@@ -696,15 +801,18 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
       <textarea class="zone-round-note" placeholder="ملاحظات الجولة: نقاط تحتاج متابعة، عوائق، أو مرجع للإتمام"></textarea>
     `;
 
-    const nameInput = form.querySelector('.zone-round-name');
-    const slider = form.querySelector('.zone-round-slider');
-    const value = form.querySelector('.zone-round-slider-value');
-    const noteInput = form.querySelector('.zone-round-note');
+    const { nameInput, slider, value, noteInput, addBtn } = controls(form, {
+      nameInput: '.zone-round-name',
+      slider: '.zone-round-slider',
+      value: '.zone-round-slider-value',
+      noteInput: '.zone-round-note',
+      addBtn: '.zone-round-add'
+    });
     let selectedType = 'صباح';
-    form.querySelectorAll('.round-type-btn').forEach(btn => {
+    const typeBtns = form.querySelectorAll('.round-type-btn');
+    typeBtns.forEach(btn => {
       btn.onclick = () => {
-        form.querySelectorAll('.round-type-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        selectActiveButton(typeBtns, btn);
         selectedType = btn.dataset.type;
       };
     });
@@ -714,18 +822,13 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
       if (!name) return;
       addZoneRound(dayIdx, name, slider.value, noteInput.value.trim(), selectedType);
     };
-    form.querySelector('.zone-round-add').onclick = doAdd;
-    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+    addBtn.onclick = doAdd;
+    nameInput.onkeydown = e => { if (e.key === 'Enter') doAdd(); };
     box.appendChild(form);
   }
 
-  const list = document.createElement('div');
-  list.className = 'zone-round-list';
-  if (!rounds.length) {
-    list.innerHTML = '<div class="empty" style="padding:16px">ما فيه جولات مسجلة لهذا اليوم</div>';
-  } else {
-    rounds.forEach(round => list.appendChild(buildZoneRoundCard(round, dayIdx, submitted)));
-  }
+  const list = el('div', 'zone-round-list');
+  renderList(list, rounds, 'ما فيه جولات مسجلة لهذا اليوم', round => buildZoneRoundCard(round, dayIdx, submitted), '16px');
 
   box.appendChild(list);
   return box;
@@ -735,37 +838,41 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
 function updateHomeUI() {
   const xp = state.totalXP||0;
   const { current, next } = getLevelData(xp);
-  document.getElementById('charTitle').textContent = current.title;
-  document.getElementById('levelNum').textContent = current.level;
-  document.getElementById('xpCurrent').textContent = xp;
+  const xpNext = $('xpNext');
+  const xpBarFill = $('xpBarFill');
+  $('charTitle').textContent = current.title;
+  $('levelNum').textContent = current.level;
+  $('xpCurrent').textContent = xp;
   if (next) {
-    document.getElementById('xpNext').textContent = next.xpNeeded;
+    xpNext.textContent = next.xpNeeded;
     const levelSpan = Math.max(1, next.xpNeeded-current.xpNeeded);
-    document.getElementById('xpBarFill').style.width = Math.min(100, Math.max(0, ((xp-current.xpNeeded)/levelSpan)*100)) + '%';
+    xpBarFill.style.width = Math.min(100, Math.max(0, ((xp-current.xpNeeded)/levelSpan)*100)) + '%';
   } else {
-    document.getElementById('xpNext').textContent = 'MAX';
-    document.getElementById('xpBarFill').style.width = '100%';
+    xpNext.textContent = 'MAX';
+    xpBarFill.style.width = '100%';
   }
   const d = getTodayIndex();
-  document.getElementById('statDay').textContent = (d+1)+' / '+state.totalDays;
-  document.getElementById('statStreak').textContent = state.streak||0;
-  document.getElementById('statPerfect').textContent = state.perfectDays||0;
+  $('statDay').textContent = (d+1)+' / '+state.totalDays;
+  $('statStreak').textContent = state.streak||0;
+  $('statPerfect').textContent = state.perfectDays||0;
   const liveChecks = state.days[d]?.done ? null : ((state.todayChecks||{})[d]||{});
   const liveExtra = liveChecks ? calcDayXP(liveChecks, getPillars(d)).extraXP : 0;
   const followupPoints = getSavedFollowupPoints() + liveExtra;
-  document.getElementById('statFollowup').textContent = followupPoints;
-  document.getElementById('xpMultiplier').textContent = 'مضاعف المتابعة ×' + getFollowupMultiplier(followupPoints).toFixed(3);
+  $('statFollowup').textContent = followupPoints;
+  $('xpMultiplier').textContent = 'مضاعف المتابعة ×' + getFollowupMultiplier(followupPoints).toFixed(3);
 
   const rPct = calcReadiness(getZoneRoundsForDay(d));
-  const rColor  = rPct >= 90 ? 'var(--teal-light)' : rPct >= 70 ? 'var(--gold-light)' : 'var(--red-light)';
+  const rColor  = readinessColor(rPct);
   const rStatus = rPct >= 90 ? '🟢 جاهز جداً'     : rPct >= 70 ? '🟡 يحتاج متابعة'   : '🔴 يحتاج تصعيد';
-  document.getElementById('readinessPct').textContent   = rPct + '%';
-  document.getElementById('readinessPct').style.color   = rColor;
-  document.getElementById('readinessStatus').textContent = rStatus;
-  document.getElementById('readinessBarFill').style.width      = rPct + '%';
-  document.getElementById('readinessBarFill').style.background = rColor;
+  const readinessPct = $('readinessPct');
+  const readinessBarFill = $('readinessBarFill');
+  readinessPct.textContent   = rPct + '%';
+  readinessPct.style.color   = rColor;
+  $('readinessStatus').textContent = rStatus;
+  readinessBarFill.style.width      = rPct + '%';
+  readinessBarFill.style.background = rColor;
 
-  const breakdownEl = document.getElementById('readinessBreakdown');
+  const breakdownEl = $('readinessBreakdown');
   const rounds = getZoneRoundsForDay(d);
   if (rounds.length && breakdownEl) {
     const bd = calcReadinessBreakdown(rounds);
@@ -782,15 +889,10 @@ function updateHomeUI() {
 }
 
 function renderHomeRounds(dayIdx) {
-  const list = document.getElementById('homeRoundsList');
+  const list = $('homeRoundsList');
   if (!list) return;
   const rounds = getZoneRoundsForDay(dayIdx);
-  list.innerHTML = '';
-  if (!rounds.length) {
-    list.innerHTML = '<div class="empty">ما فيه جولات مسجلة اليوم</div>';
-    return;
-  }
-  rounds.forEach(round => list.appendChild(buildZoneRoundCard(round, dayIdx, true)));
+  renderList(list, rounds, 'ما فيه جولات مسجلة اليوم', round => buildZoneRoundCard(round, dayIdx, true));
 }
 
 // ── QUEST ──
@@ -798,42 +900,28 @@ function renderHomeRounds(dayIdx) {
 const EVIDENCE_CATEGORIES = ['مبادرة', 'تواصل', 'حل مشكلة', 'متابعة', 'أثر واضح', 'أخرى'];
 
 function getEvidenceForDay(idx) {
-  if (Array.isArray(state.days?.[idx]?.evidence)) return state.days[idx].evidence;
-  if (Array.isArray((state.evidenceDrafts||{})[idx])) return state.evidenceDrafts[idx];
-  return [];
+  return getDayCollection(idx, 'evidence', 'evidenceDrafts');
 }
 
 function addEvidence(dayIdx, category, text) {
-  if (!state.evidenceDrafts) state.evidenceDrafts = {};
-  if (!Array.isArray(state.evidenceDrafts[dayIdx])) state.evidenceDrafts[dayIdx] = [];
-  state.evidenceDrafts[dayIdx].push({ id: 'ev_'+Date.now(), category, text });
+  const drafts = ensureObject(state, 'evidenceDrafts');
+  ensureArray(drafts, dayIdx).push({ id: makeId('ev_'), category, text });
   saveState();
   updateQuestUI();
 }
 
 function deleteEvidence(dayIdx, evidenceId) {
-  if (!state.evidenceDrafts?.[dayIdx]) return;
-  state.evidenceDrafts[dayIdx] = state.evidenceDrafts[dayIdx].filter(e => e.id !== evidenceId);
-  saveState();
-  updateQuestUI();
+  if (deleteDraftItem('evidenceDrafts', dayIdx, evidenceId)) updateQuestUI();
 }
 
 function buildEvidenceCard(entry, dayIdx, submitted) {
-  const card = document.createElement('div');
-  card.className = 'evidence-card';
-  const top = document.createElement('div');
-  top.className = 'evidence-card-top';
-  const badge = document.createElement('span');
-  badge.className = 'evidence-cat-badge';
-  badge.textContent = entry.category;
-  const txt = document.createElement('div');
-  txt.className = 'evidence-card-text';
-  txt.textContent = entry.text;
+  const card = el('div', 'evidence-card');
+  const top = el('div', 'evidence-card-top');
+  const badge = el('span', 'evidence-cat-badge', entry.category);
+  const txt = el('div', 'evidence-card-text', entry.text);
   top.append(badge, txt);
   if (!submitted) {
-    const del = document.createElement('button');
-    del.className = 'evidence-delete';
-    del.textContent = '✕';
+    const del = el('button', 'evidence-delete', '✕');
     del.title = 'احذف';
     del.onclick = () => deleteEvidence(dayIdx, entry.id);
     top.appendChild(del);
@@ -844,38 +932,29 @@ function buildEvidenceCard(entry, dayIdx, submitted) {
 
 function buildEvidencePanel(dayIdx, submitted) {
   const entries = getEvidenceForDay(dayIdx);
-  const box = document.createElement('div');
-  box.className = 'evidence-box';
-  const head = document.createElement('div');
-  head.className = 'evidence-head';
+  const box = el('div', 'evidence-box');
+  const head = el('div', 'evidence-head');
   head.innerHTML = `<div class="evidence-title">🏅 دليل اليوم</div><div class="evidence-count">${entries.length ? entries.length + ' إدخال' : ''}</div>`;
-  const hint = document.createElement('div');
-  hint.className = 'evidence-hint';
-  hint.textContent = 'سجّل الأفعال التي تستحق التقدير لملف أفضل موظف. لا تؤثر على XP.';
+  const hint = el('div', 'evidence-hint', 'سجّل الأفعال التي تستحق التقدير لملف أفضل موظف. لا تؤثر على XP.');
   box.append(head, hint);
   if (!submitted) {
-    const form = document.createElement('div');
-    form.className = 'evidence-form';
-    const catSel = document.createElement('div');
-    catSel.className = 'evidence-cat-selector';
+    const form = el('div', 'evidence-form');
+    const catSel = el('div', 'evidence-cat-selector');
     let selectedCat = EVIDENCE_CATEGORIES[0];
+    const catBtns = [];
     EVIDENCE_CATEGORIES.forEach((cat, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'evidence-cat-btn' + (i === 0 ? ' active' : '');
-      btn.textContent = cat;
+      const btn = el('button', 'evidence-cat-btn' + (i === 0 ? ' active' : ''), cat);
       btn.onclick = () => {
-        catSel.querySelectorAll('.evidence-cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        selectActiveButton(catBtns, btn);
         selectedCat = cat;
       };
+      catBtns.push(btn);
       catSel.appendChild(btn);
     });
-    const inp = document.createElement('textarea');
+    const inp = el('textarea');
     inp.className = 'evidence-input';
     inp.placeholder = 'صف الفعل باختصار: ماذا حصل، وما أثره على الحجاج أو الزون؟';
-    const addBtn = document.createElement('button');
-    addBtn.className = 'evidence-add';
-    addBtn.textContent = '+ أضف دليلاً';
+    const addBtn = el('button', 'evidence-add', '+ أضف دليلاً');
     addBtn.onclick = () => {
       const text = inp.value.trim();
       if (!text) return;
@@ -884,13 +963,8 @@ function buildEvidencePanel(dayIdx, submitted) {
     form.append(catSel, inp, addBtn);
     box.appendChild(form);
   }
-  const list = document.createElement('div');
-  list.className = 'evidence-list';
-  if (!entries.length) {
-    list.innerHTML = '<div class="empty" style="padding:12px">ما فيه أدلة مسجلة لهذا اليوم</div>';
-  } else {
-    entries.forEach(e => list.appendChild(buildEvidenceCard(e, dayIdx, submitted)));
-  }
+  const list = el('div', 'evidence-list');
+  renderList(list, entries, 'ما فيه أدلة مسجلة لهذا اليوم', entry => buildEvidenceCard(entry, dayIdx, submitted), '12px');
   box.appendChild(list);
   return box;
 }
@@ -902,24 +976,24 @@ function updateQuestUI() {
     ? (state.days[viewDayIdx]?.tasks||{})
     : ((state.todayChecks||{})[viewDayIdx]||{});
 
-  document.getElementById('dayNavLabel').textContent = 'اليوم '+(viewDayIdx+1);
-  document.getElementById('dayNavDate').textContent  = getDateForDay(viewDayIdx);
-  document.getElementById('dayTodayBadge').style.display = isToday ? 'inline-block' : 'none';
-  document.getElementById('dayPrevBtn').disabled = viewDayIdx <= 0;
-  document.getElementById('dayNextBtn').disabled = viewDayIdx >= state.totalDays-1;
+  $('dayNavLabel').textContent = 'اليوم '+(viewDayIdx+1);
+  $('dayNavDate').textContent  = getDateForDay(viewDayIdx);
+  $('dayTodayBadge').style.display = isToday ? 'inline-block' : 'none';
+  $('dayPrevBtn').disabled = viewDayIdx <= 0;
+  $('dayNextBtn').disabled = viewDayIdx >= state.totalDays-1;
 
   const pillars = submitted && state.days[viewDayIdx]?.pillarsSnapshot
     ? state.days[viewDayIdx].pillarsSnapshot
     : getPillars();
-  const zoneContainer = document.getElementById('zoneReadinessContainer');
+  const zoneContainer = $('zoneReadinessContainer');
   zoneContainer.innerHTML = '';
   zoneContainer.appendChild(buildZoneReadinessPanel(viewDayIdx, submitted));
 
-  const evContainer = document.getElementById('evidenceContainer');
+  const evContainer = $('evidenceContainer');
   evContainer.innerHTML = '';
   evContainer.appendChild(buildEvidencePanel(viewDayIdx, submitted));
 
-  const container = document.getElementById('pillarsContainer');
+  const container = $('pillarsContainer');
   container.innerHTML = '';
 
   pillars.forEach(pillar => {
@@ -927,20 +1001,17 @@ function updateQuestUI() {
     let pillarMax = 0;
     pillar.tasks.forEach(t => {
       pillarMax += t.xp;
-      pillarXP += Math.round(t.xp * getCheckValue(checks, t.id) / 100);
+      pillarXP += earnedXP(t.xp, getCheckValue(checks, t.id));
     });
     const pillarComplete = pillarMax > 0 && pillarXP === pillarMax;
 
-    const pillarDiv = document.createElement('div');
-    pillarDiv.className = 'pillar';
+    const pillarDiv = el('div', 'pillar');
 
-    const hdr = document.createElement('div');
-    hdr.className = 'pillar-header';
+    const hdr = el('div', 'pillar-header');
     hdr.innerHTML = `<span class="pillar-icon">${pillar.icon}</span><span class="pillar-name">${pillar.name}</span><span class="pillar-xp${pillarComplete ? ' complete' : ''}">${pillarComplete ? '✓ ' : ''}${pillarXP} XP</span>`;
     pillarDiv.appendChild(hdr);
 
-    const tasksDiv = document.createElement('div');
-    tasksDiv.className = 'pillar-tasks';
+    const tasksDiv = el('div', 'pillar-tasks');
 
     pillar.tasks.forEach(task => {
       const val = getCheckValue(checks, task.id);
@@ -952,9 +1023,7 @@ function updateQuestUI() {
     pillarDiv.appendChild(tasksDiv);
 
     if (!submitted) {
-      const tog = document.createElement('button');
-      tog.className = 'add-task-toggle';
-      tog.textContent = '+ ضيف مهمة';
+      const tog = el('button', 'add-task-toggle', '+ ضيف مهمة');
       tog.onclick = () => showAddForm(pillar.id, tog, pillarDiv);
       pillarDiv.appendChild(tog);
     }
@@ -965,13 +1034,13 @@ function updateQuestUI() {
   const { xp, extraXP, perfect } = calcDayXP(checks, pillars);
   const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
   const levelXP = Math.round(xp * multiplier);
-  document.getElementById('bonusBanner').classList.toggle('unlocked', perfect);
-  document.getElementById('todayXP').textContent = levelXP + ' نقطة مستوى' + (extraXP ? ' + ' + extraXP + ' متابعة' : '');
+  $('bonusBanner').classList.toggle('unlocked', perfect);
+  $('todayXP').textContent = levelXP + ' نقطة مستوى' + (extraXP ? ' + ' + extraXP + ' متابعة' : '');
 
-  const reopenBtn = document.getElementById('reopenBtn');
+  const reopenBtn = $('reopenBtn');
   reopenBtn.style.display = submitted ? 'block' : 'none';
 
-  const btn = document.getElementById('submitBtn');
+  const btn = $('submitBtn');
   if (submitted) {
     btn.disabled = true; btn.textContent = '✓ اليوم خلص'; btn.className = 'submit-btn done-today';
   } else {
@@ -983,33 +1052,23 @@ function updateQuestUI() {
 
 // ── BINARY TASK ──
 function buildBinaryItem(task, isDone, pillar, submitted) {
-  const item = document.createElement('div');
-  item.className = 'task-item' + (isDone ? ' done' : '');
+  const item = el('div', 'task-item' + (isDone ? ' done' : ''));
 
-  const chk = document.createElement('div');
-  chk.className = 'task-check';
-  chk.textContent = isDone ? '✓' : '';
+  const chk = el('div', 'task-check', isDone ? '✓' : '');
   if (!submitted) chk.onclick = () => toggleBinary(task.id, task.xp, task._scope);
 
-  const copy = document.createElement('div');
-  copy.className = 'task-copy';
+  const copy = el('div', 'task-copy');
   if (!submitted) copy.onclick = () => toggleBinary(task.id, task.xp, task._scope);
 
-  const txt = document.createElement('span');
-  txt.className = 'task-text';
-  txt.textContent = task.text;
+  const txt = el('span', 'task-text', task.text);
   copy.appendChild(txt);
 
   if (task.note) {
-    const note = document.createElement('span');
-    note.className = 'task-note';
-    note.textContent = task.note;
+    const note = el('span', 'task-note', task.note);
     copy.appendChild(note);
   }
 
-  const xpSpan = document.createElement('span');
-  xpSpan.className = 'task-xp';
-  xpSpan.textContent = '+'+task.xp;
+  const xpSpan = el('span', 'task-xp', '+'+task.xp);
 
   const actions = buildActionBtns(task, pillar, item);
 
@@ -1019,52 +1078,49 @@ function buildBinaryItem(task, isDone, pillar, submitted) {
 
 // ── PARTIAL TASK ──
 function buildPartialItem(task, val, pillar, submitted) {
-  const wrap = document.createElement('div');
-  wrap.className = 'task-partial';
+  const wrap = el('div', 'task-partial');
 
-  const top = document.createElement('div');
-  top.className = 'task-partial-top';
+  const top = el('div', 'task-partial-top');
 
-  const taskLbl = document.createElement('span');
-  taskLbl.className = 'task-partial-label';
-  taskLbl.textContent = task.text;
+  const taskLbl = el('span', 'task-partial-label', task.text);
 
-  const earned = document.createElement('span');
-  const earnedXP = Math.round(task.xp * val / 100);
-  earned.className = 'task-partial-earned' + (earnedXP > 0 ? ' has-xp' : '');
-  earned.textContent = earnedXP + ' / ' + task.xp + ' XP';
+  const earned = el('span');
+  const updateEarned = pct => {
+    const xp = earnedXP(task.xp, pct);
+    earned.className = 'task-partial-earned' + (xp > 0 ? ' has-xp' : '');
+    earned.textContent = xp + ' / ' + task.xp + ' XP';
+  };
+  updateEarned(val);
 
   const actions = buildActionBtns(task, pillar, wrap);
   top.append(taskLbl, earned, actions);
   wrap.appendChild(top);
 
   if (task.note) {
-    const note = document.createElement('div');
-    note.className = 'task-partial-note';
-    note.textContent = task.note;
+    const note = el('div', 'task-partial-note', task.note);
     wrap.appendChild(note);
   }
 
-  const pctRow = document.createElement('div');
-  pctRow.className = 'pct-input-row';
+  const pctRow = el('div', 'pct-input-row');
 
-  const inp = document.createElement('input');
+  const inp = el('input');
   inp.type = 'number';
   inp.min = 0; inp.max = 100;
   inp.value = val;
   inp.className = 'pct-input' + (val === 100 ? ' full' : '');
   inp.disabled = !!submitted;
 
-  const pctLbl = document.createElement('span');
-  pctLbl.className = 'pct-label';
-  pctLbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * val / 100) + ' XP';
+  const pctLbl = el('span', 'pct-label');
+  const updatePctLabel = pct => {
+    pctLbl.textContent = '% من ' + task.xp + ' XP = ' + earnedXP(task.xp, pct) + ' XP';
+  };
+  updatePctLabel(val);
 
   inp.oninput = () => {
     let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
     inp.className = 'pct-input' + (pct === 100 ? ' full' : '');
-    pctLbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * pct / 100) + ' XP';
-    earned.className = 'task-partial-earned' + (pct > 0 ? ' has-xp' : '');
-    earned.textContent = Math.round(task.xp * pct / 100) + ' / ' + task.xp + ' XP';
+    updatePctLabel(pct);
+    updateEarned(pct);
   };
   inp.onchange = () => {
     let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
@@ -1079,18 +1135,13 @@ function buildPartialItem(task, val, pillar, submitted) {
 }
 
 function buildActionBtns(task, pillar, parentRef) {
-  const actions = document.createElement('div');
-  actions.className = 'task-actions';
+  const actions = el('div', 'task-actions');
 
-  const editBtn = document.createElement('button');
-  editBtn.className = 'task-action-btn edit';
-  editBtn.textContent = '✏️';
+  const editBtn = el('button', 'task-action-btn edit', '✏️');
   editBtn.title = 'عدّل';
   editBtn.onclick = e => { e.stopPropagation(); showEditRow(task, pillar, parentRef); };
 
-  const delBtn = document.createElement('button');
-  delBtn.className = 'task-action-btn del';
-  delBtn.textContent = '✕';
+  const delBtn = el('button', 'task-action-btn del', '✕');
   delBtn.title = 'احذف';
   delBtn.onclick = e => { e.stopPropagation(); deleteTask(task, pillar); };
 
@@ -1112,8 +1163,7 @@ function showEditRow(task, pillar, el) {
   const isDayCustom = !!getDayCustomTask(viewDayIdx, pillar.id, task.id);
   const canChooseScope = isGlobalCustom || isDayCustom;
   const isCustomTask = isGlobalCustom || isDayCustom;
-  const row = document.createElement('div');
-  row.className = 'task-edit-row';
+  const row = el('div', 'task-edit-row');
   row.innerHTML = `
     <div class="task-edit-inputs">
       <input class="task-edit-text" value="${escapeHtml(task.text)}" placeholder="نص المهمة">
@@ -1134,36 +1184,43 @@ function showEditRow(task, pillar, el) {
     </div>
   `;
   el.replaceWith(row);
-  row.querySelector('.task-edit-save').onclick = () => {
-    const text = row.querySelector('.task-edit-text').value.trim();
-    const xp   = isCustomTask ? FOLLOWUP_TASK_POINTS : (parseInt(row.querySelector('.task-edit-xp').value) || task.xp);
-    const note = row.querySelector('.task-edit-note').value.trim();
-    const partial = row.querySelector('#editPartialChk').checked;
-    const allDays = row.querySelector('#editAllDaysChk').checked;
+  const { textInput, xpInput, noteInput, partialInput, allDaysInput, saveBtn, cancelBtn } = controls(row, {
+    textInput: '.task-edit-text',
+    xpInput: '.task-edit-xp',
+    noteInput: '.task-edit-note',
+    partialInput: '#editPartialChk',
+    allDaysInput: '#editAllDaysChk',
+    saveBtn: '.task-edit-save',
+    cancelBtn: '.task-edit-cancel'
+  });
+  saveBtn.onclick = () => {
+    const text = textInput.value.trim();
+    const xp   = isCustomTask ? FOLLOWUP_TASK_POINTS : (parseInt(xpInput.value) || task.xp);
+    const note = noteInput.value.trim();
+    const partial = partialInput.checked;
+    const allDays = allDaysInput.checked;
     if (!text) return;
     saveTaskEdit(task, pillar, text, xp, partial, note, allDays);
   };
-  row.querySelector('.task-edit-cancel').onclick = () => updateQuestUI();
-  row.querySelector('.task-edit-text').focus();
+  cancelBtn.onclick = () => updateQuestUI();
+  textInput.focus();
 }
 
 function saveTaskEdit(task, pillar, text, xp, partial, note, allDays) {
   const isCustom = getGlobalCustomTask(pillar.id, task.id);
   const isDayCustom = getDayCustomTask(viewDayIdx, pillar.id, task.id);
+  const patch = { text, xp, partial, note };
   if (isCustom) {
-    state.customTasks[pillar.id] = state.customTasks[pillar.id].map(t => t.id===task.id ? {...t,text,xp,partial,note} : t);
+    state.customTasks[pillar.id] = replaceTask(state.customTasks[pillar.id], task.id, patch);
   } else if (isDayCustom) {
     if (allDays) {
-      state.dayCustomTasks[viewDayIdx][pillar.id] = state.dayCustomTasks[viewDayIdx][pillar.id].filter(t => t.id !== task.id);
-      if (!state.customTasks) state.customTasks = {};
-      if (!state.customTasks[pillar.id]) state.customTasks[pillar.id] = [];
-      state.customTasks[pillar.id].push({...isDayCustom,text,xp,partial,note});
+      state.dayCustomTasks[viewDayIdx][pillar.id] = removeTask(state.dayCustomTasks[viewDayIdx][pillar.id], task.id);
+      ensureArray(ensureObject(state, 'customTasks'), pillar.id).push({...isDayCustom, ...patch});
     } else {
-      state.dayCustomTasks[viewDayIdx][pillar.id] = state.dayCustomTasks[viewDayIdx][pillar.id].map(t => t.id===task.id ? {...t,text,xp,partial,note} : t);
+      state.dayCustomTasks[viewDayIdx][pillar.id] = replaceTask(state.dayCustomTasks[viewDayIdx][pillar.id], task.id, patch);
     }
   } else {
-    if (!state.taskOverrides) state.taskOverrides = {};
-    state.taskOverrides[task.id] = { text, xp, partial, note };
+    ensureObject(state, 'taskOverrides')[task.id] = patch;
   }
   saveState(); updateQuestUI();
 }
@@ -1173,12 +1230,12 @@ function deleteTask(task, pillar) {
   const isCustom = getGlobalCustomTask(pillar.id, task.id);
   const isDayCustom = getDayCustomTask(viewDayIdx, pillar.id, task.id);
   if (isCustom) {
-    state.customTasks[pillar.id] = state.customTasks[pillar.id].filter(t => t.id !== task.id);
+    state.customTasks[pillar.id] = removeTask(state.customTasks[pillar.id], task.id);
   } else if (isDayCustom) {
-    state.dayCustomTasks[viewDayIdx][pillar.id] = state.dayCustomTasks[viewDayIdx][pillar.id].filter(t => t.id !== task.id);
+    state.dayCustomTasks[viewDayIdx][pillar.id] = removeTask(state.dayCustomTasks[viewDayIdx][pillar.id], task.id);
   } else {
-    if (!state.hiddenTasks) state.hiddenTasks = [];
-    if (!state.hiddenTasks.includes(task.id)) state.hiddenTasks.push(task.id);
+    const hiddenTasks = ensureArray(state, 'hiddenTasks');
+    if (!hiddenTasks.includes(task.id)) hiddenTasks.push(task.id);
   }
   saveState(); updateQuestUI();
 }
@@ -1186,8 +1243,7 @@ function deleteTask(task, pillar) {
 // ── ADD FORM ──
 function showAddForm(pillarId, togBtn, pillarDiv) {
   togBtn.style.display = 'none';
-  const form = document.createElement('div');
-  form.className = 'add-task-form';
+  const form = el('div', 'add-task-form');
   form.innerHTML = `
     <div class="add-task-row1">
       <input class="add-task-input" placeholder="نص المهمة الجديدة" type="text">
@@ -1208,53 +1264,52 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
     </div>
   `;
   pillarDiv.appendChild(form);
-  const inp = form.querySelector('.add-task-input');
+  const { inp, noteInput, partialInput, allDaysInput, submitBtn, cancelBtn } = controls(form, {
+    inp: '.add-task-input',
+    noteInput: '.add-task-note',
+    partialInput: '#addPartialChk',
+    allDaysInput: '#addAllDaysChk',
+    submitBtn: '.add-task-submit',
+    cancelBtn: '.add-task-cancel-btn'
+  });
   const doAdd = () => {
     const text = inp.value.trim();
     const xp   = FOLLOWUP_TASK_POINTS;
-    const note = form.querySelector('.add-task-note').value.trim();
-    const partial = form.querySelector('#addPartialChk').checked;
-    const allDays = form.querySelector('#addAllDaysChk').checked;
+    const note = noteInput.value.trim();
+    const partial = partialInput.checked;
+    const allDays = allDaysInput.checked;
     if (!text) return;
-    const task = { id:'custom_'+Date.now(), text, xp, partial, note };
+    const task = { id: makeId('custom_'), text, xp, partial, note };
     if (allDays) {
-      if (!state.customTasks) state.customTasks = {};
-      if (!state.customTasks[pillarId]) state.customTasks[pillarId] = [];
-      state.customTasks[pillarId].push(task);
+      ensureArray(ensureObject(state, 'customTasks'), pillarId).push(task);
     } else {
-      if (!state.dayCustomTasks) state.dayCustomTasks = {};
-      if (!state.dayCustomTasks[viewDayIdx]) state.dayCustomTasks[viewDayIdx] = {};
-      if (!state.dayCustomTasks[viewDayIdx][pillarId]) state.dayCustomTasks[viewDayIdx][pillarId] = [];
-      state.dayCustomTasks[viewDayIdx][pillarId].push(task);
+      const dayTasks = ensureObject(ensureObject(state, 'dayCustomTasks'), viewDayIdx);
+      ensureArray(dayTasks, pillarId).push(task);
     }
     saveState(); updateQuestUI();
   };
-  form.querySelector('.add-task-submit').onclick = doAdd;
-  form.querySelector('.add-task-cancel-btn').onclick = () => updateQuestUI();
-  inp.addEventListener('keydown', e => { if (e.key==='Enter') doAdd(); });
+  submitBtn.onclick = doAdd;
+  cancelBtn.onclick = () => updateQuestUI();
+  inp.onkeydown = e => { if (e.key==='Enter') doAdd(); };
   inp.focus();
 }
 
 // ── TOGGLE / SET ──
 function toggleBinary(taskId, xp, scope = 'base') {
-  if (!state.todayChecks) state.todayChecks = {};
-  if (!state.todayChecks[viewDayIdx]) state.todayChecks[viewDayIdx] = {};
-  const cur = getCheckValue(state.todayChecks[viewDayIdx], taskId);
+  const dayChecks = ensureObject(ensureObject(state, 'todayChecks'), viewDayIdx);
+  const cur = getCheckValue(dayChecks, taskId);
   const next = cur === 100 ? 0 : 100;
-  state.todayChecks[viewDayIdx][taskId] = next;
+  dayChecks[taskId] = next;
   saveState();
-  if (next === 100) showXPToast(scope === 'base' ? '+'+xp+' XP' : '+'+xp+' متابعة');
+  if (next === 100) showXPToast(xpToastText(xp, scope));
   updateQuestUI();
 }
 
 function setPartial(taskId, xp, pct, scope = 'base') {
-  if (!state.todayChecks) state.todayChecks = {};
-  if (!state.todayChecks[viewDayIdx]) state.todayChecks[viewDayIdx] = {};
-  state.todayChecks[viewDayIdx][taskId] = pct;
+  ensureObject(ensureObject(state, 'todayChecks'), viewDayIdx)[taskId] = pct;
   saveState();
   if (pct > 0) {
-    const earned = Math.round(xp*pct/100);
-    showXPToast(scope === 'base' ? '+'+earned+' XP' : '+'+earned+' متابعة');
+    showXPToast(xpToastText(earnedXP(xp, pct), scope));
   }
   updateQuestUI();
 }
@@ -1275,8 +1330,8 @@ function submitDay() {
   const coreTasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.core);
   const coreComplete = coreTasks.every(t => getCheckValue(checks, t.id) === 100);
 
-  const zoneRounds = getZoneRoundsForDay(viewDayIdx).map(round => ({ ...round }));
-  const evidence = getEvidenceForDay(viewDayIdx).map(e => ({ ...e }));
+  const zoneRounds = cloneItems(getZoneRoundsForDay(viewDayIdx));
+  const evidence = cloneItems(getEvidenceForDay(viewDayIdx));
   const pillarsSnapshot = pillars.map(p => ({
     id: p.id, icon: p.icon, name: p.name,
     tasks: p.tasks.map(t => ({
@@ -1319,12 +1374,9 @@ function reopenDay() {
   if (day.perfect) state.perfectDays = Math.max(0, (state.perfectDays||0) - 1);
 
   // Restore checks so the user can re-edit
-  if (!state.todayChecks) state.todayChecks = {};
-  state.todayChecks[viewDayIdx] = { ...day.tasks };
-  if (!state.zoneRoundsDrafts) state.zoneRoundsDrafts = {};
-  state.zoneRoundsDrafts[viewDayIdx] = (day.zoneRounds||[]).map(round => ({ ...round }));
-  if (!state.evidenceDrafts) state.evidenceDrafts = {};
-  state.evidenceDrafts[viewDayIdx] = (day.evidence||[]).map(e => ({ ...e }));
+  ensureObject(state, 'todayChecks')[viewDayIdx] = { ...day.tasks };
+  ensureObject(state, 'zoneRoundsDrafts')[viewDayIdx] = cloneItems(day.zoneRounds);
+  ensureObject(state, 'evidenceDrafts')[viewDayIdx] = cloneItems(day.evidence);
 
   // Recompute streak from scratch from submitted days
   delete state.days[viewDayIdx];
@@ -1354,10 +1406,10 @@ function jumpToDay(idx) {
 
 // ── SETTINGS ──
 function saveSettings() {
-  const d = document.getElementById('editStartDate').value;
-  const n = parseInt(document.getElementById('editTotalDays').value, 10);
+  const d = $('editStartDate').value;
+  const n = validTotalDays($('editTotalDays').value);
   if (!d) { alert('اختر تاريخ البداية'); return; }
-  if (!n || n < 1 || n > 30) { alert('عدد الأيام لازم يكون بين 1 و30'); return; }
+  if (!n) { alert('عدد الأيام لازم يكون بين 1 و30'); return; }
   state.startDate = d;
   state.totalDays = n;
   saveState();
@@ -1367,14 +1419,11 @@ function saveSettings() {
 
 // ── LOG ──
 function buildMemoryView() {
-  const mc = document.getElementById('memoryContainer');
+  const mc = $('memoryContainer');
   if (!mc) return;
   const entries = Object.entries(state.days).filter(([,d]) => d.done);
-  if (!entries.length) { mc.innerHTML = '<div class="empty">ما فيه ملاحظات بعد</div>'; return; }
+  if (!entries.length) { setEmpty(mc, 'ما فيه ملاحظات بعد'); return; }
   entries.sort(([a],[b]) => +a - +b);
-
-  const allCustomTasks = {};
-  Object.entries(state.customTasks||{}).forEach(([pid, tasks]) => tasks.forEach(t => { allCustomTasks[t.id] = t; }));
 
   let html = '';
   let totalNotes = 0;
@@ -1391,13 +1440,11 @@ function buildMemoryView() {
       items.push({ source: 'دليل', label: e.category, note: e.text });
     });
 
-    const dayCustom = state.dayCustomTasks?.[dayNum] || {};
-    Object.values(dayCustom).forEach(tasks => tasks.forEach(t => {
+    const collectTaskNotes = taskGroups => Object.values(taskGroups||{}).forEach(tasks => tasks.forEach(t => {
       if (t.note && t.note.trim() && day.tasks?.[t.id] > 0) items.push({ source: 'مهمة', label: t.text, note: t.note.trim() });
     }));
-    Object.values(state.customTasks||{}).forEach(tasks => tasks.forEach(t => {
-      if (t.note && t.note.trim() && day.tasks?.[t.id] > 0) items.push({ source: 'مهمة', label: t.text, note: t.note.trim() });
-    }));
+    collectTaskNotes(state.dayCustomTasks?.[dayNum]);
+    collectTaskNotes(state.customTasks);
 
     if (!items.length) return;
     totalNotes += items.length;
@@ -1418,17 +1465,18 @@ function buildMemoryView() {
     html += `</div>`;
   });
 
-  mc.innerHTML = totalNotes ? html : '<div class="empty">ما فيه ملاحظات مسجلة بعد</div>';
+  if (totalNotes) mc.innerHTML = html;
+  else setEmpty(mc, 'ما فيه ملاحظات مسجلة بعد');
 }
 
 function updateLogUI() {
-  const eDate = document.getElementById('editStartDate');
-  const eDays = document.getElementById('editTotalDays');
+  const eDate = $('editStartDate');
+  const eDays = $('editTotalDays');
   if (eDate) eDate.value = state.startDate || '';
   if (eDays) eDays.value = state.totalDays || '';
-  const c = document.getElementById('logContainer');
+  const c = $('logContainer');
   const entries = Object.entries(state.days).filter(([,d])=>d.done);
-  if (!entries.length) { c.innerHTML='<div class="empty">ما فيه أيام منتهية بعد</div>'; return; }
+  if (!entries.length) { setEmpty(c, 'ما فيه أيام منتهية بعد'); return; }
   entries.sort(([a],[b])=>+a-+b);
   const maxXP = getBaseDayMaxXP();
   c.innerHTML = entries.map(([idx,day])=>{
@@ -1453,30 +1501,30 @@ function updateAllUI() { updateHomeUI(); updateQuestUI(); updateLogUI(); }
 function spawnParticles() {
   const colors=['#C8972A','#E8B84B','#fff8e0','#3aaa8a'];
   for(let i=0;i<18;i++){
-    const p=document.createElement('div'); p.className='particle';
+    const p=el('div', 'particle');
     const a=Math.random()*Math.PI*2, d=80+Math.random()*120;
     p.style.cssText=`left:50%;top:60%;background:${colors[Math.floor(Math.random()*4)]};--tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d}px;animation-delay:${Math.random()*0.2}s`;
     document.body.appendChild(p); setTimeout(()=>p.remove(),1400);
   }
 }
 function showXPToast(t) {
-  const el=document.createElement('div'); el.className='xp-toast'; el.textContent=t;
-  document.body.appendChild(el); setTimeout(()=>el.remove(),1500);
+  const toast=el('div', 'xp-toast', t);
+  document.body.appendChild(toast); setTimeout(()=>toast.remove(),1500);
 }
 function showLevelUp(ld) {
-  document.getElementById('levelupEmoji').textContent=ld.emoji;
-  document.getElementById('levelupTitle').textContent=ld.title;
-  document.getElementById('levelupOverlay').classList.add('show');
+  $('levelupEmoji').textContent=ld.emoji;
+  $('levelupTitle').textContent=ld.title;
+  $('levelupOverlay').classList.add('show');
   spawnParticles(); spawnParticles();
 }
-function closeLevelup() { document.getElementById('levelupOverlay').classList.remove('show'); }
+function closeLevelup() { $('levelupOverlay').classList.remove('show'); }
 
 // ── VIEWS ──
 function showView(name) {
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  document.getElementById('nav-'+name).classList.add('active');
+  clearActive('.view');
+  clearActive('.nav-btn');
+  $('view-'+name).classList.add('active');
+  $('nav-'+name).classList.add('active');
   if (name==='home')  updateHomeUI();
   if (name==='quest') { viewDayIdx=getTodayIndex(); updateQuestUI(); }
   if (name==='log')   updateLogUI();
@@ -1484,18 +1532,18 @@ function showView(name) {
 
 // ── SETUP ──
 function startSession() {
-  const d=document.getElementById('startDateInput').value;
-  const n=document.getElementById('totalDaysInput').value;
+  const d=$('startDateInput').value;
+  const n=$('totalDaysInput').value;
   if(!d){alert('اختار تاريخ البداية أولاً');return;}
   initState(d,n);
-  document.getElementById('setupScreen').style.display='none';
+  hideSetup();
   viewDayIdx=getTodayIndex(); updateAllUI();
 }
 
 window.onload = () => {
-  document.getElementById('startDateInput').value=new Date().toISOString().slice(0,10);
+  $('startDateInput').value=new Date().toISOString().slice(0,10);
   if(loadState()&&state.startDate){
-    document.getElementById('setupScreen').style.display='none';
+    hideSetup();
     viewDayIdx=getTodayIndex(); updateAllUI();
   }
 };
