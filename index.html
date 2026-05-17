@@ -56,7 +56,7 @@
   .xp-bar-fill::after { content: ''; position: absolute; top: 0; right: 0; width: 20px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3)); animation: shimmer-bar 2s infinite; }
   @keyframes shimmer-bar { 0%,100%{opacity:0} 50%{opacity:1} }
 
-  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 8px; text-align: center; }
   .stat-value { font-family: 'Cinzel Decorative', cursive; font-size: 20px; color: var(--gold-light); display: block; }
   .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
@@ -89,7 +89,7 @@
   .task-text { flex: 1; font-size: 15px; cursor: pointer; }
   .task-xp { font-size: 12px; color: var(--text-dim); flex-shrink: 0; }
   .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
-  .task-action-btn { background: none; border: 1px solid transparent; border-radius: 5px; padding: 3px 7px; cursor: pointer; font-size: 13px; transition: all 0.2s; color: var(--text-dim); font-family: 'Amiri', serif; }
+  .task-action-btn { background: none; border: 1px solid transparent; border-radius: 5px; padding: 6px 10px; cursor: pointer; font-size: 14px; transition: all 0.2s; color: var(--text-dim); font-family: 'Amiri', serif; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
   .task-action-btn.edit:hover { border-color: var(--gold-dim); color: var(--gold); background: rgba(200,151,42,0.08); }
   .task-action-btn.del:hover  { border-color: var(--red); color: var(--red-light); background: rgba(122,32,32,0.1); }
 
@@ -98,8 +98,8 @@
   .task-partial:hover { border-color: var(--gold-dim); }
   .task-partial-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .task-partial-label { flex: 1; font-size: 15px; color: var(--text); }
-  .task-partial-earned { font-size: 12px; color: var(--gold-dim); flex-shrink: 0; }
-  .task-partial-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .task-partial-earned { font-size: 12px; color: var(--gold-dim); flex-shrink: 0; transition: color 0.2s; }
+  .task-partial-earned.has-xp { color: var(--gold); }
   .pct-btns { display: flex; gap: 5px; }
   .pct-btn {
     flex: 1; background: var(--bg); border: 1px solid var(--border);
@@ -154,7 +154,8 @@
   .submit-btn.done-today { background: linear-gradient(135deg, rgba(42,122,106,0.3), rgba(42,122,106,0.2)); border-color: var(--teal); color: var(--teal-light); }
 
   /* LOG */
-  .log-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+  .log-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.2s; }
+  .log-item:hover { border-color: var(--gold-dim); }
   .log-day { font-family: 'Cinzel Decorative', cursive; font-size: 13px; color: var(--gold-dim); width: 32px; flex-shrink: 0; text-align: center; }
   .log-bar-wrap { flex: 1; }
   .log-label { font-size: 14px; color: var(--text-dim); margin-bottom: 4px; }
@@ -193,6 +194,17 @@
   @keyframes toast-rise { 0% { opacity:1; transform:translateX(-50%) translateY(0); } 100% { opacity:0; transform:translateX(-50%) translateY(-40px); } }
   .section-title { font-family: 'Scheherazade New', serif; font-size: 18px; color: var(--gold-dim); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
   .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* PILLAR complete state */
+  .pillar-xp.complete { background: rgba(200,151,42,0.18); border-color: var(--gold); color: var(--gold-light); }
+
+  /* REOPEN button */
+  .reopen-btn { width: 100%; background: none; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-family: 'Amiri', serif; font-size: 15px; padding: 10px; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+  .reopen-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+
+  /* HOME CTA */
+  .home-cta { width: 100%; background: linear-gradient(135deg,#1a3a2a,#0d2018); border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal-light); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; margin-top: 16px; }
+  .home-cta:hover { box-shadow: 0 4px 16px rgba(42,170,138,0.2); }
 </style>
 </head>
 <body>
@@ -243,9 +255,7 @@
       <div class="stat-box"><span class="stat-value" id="statStreak">0</span><div class="stat-label">🔥 تسلسل</div></div>
       <div class="stat-box"><span class="stat-value" id="statPerfect">0</span><div class="stat-label">⭐ مثالي</div></div>
     </div>
-    <div style="margin-top:16px">
-      <button class="submit-btn" onclick="showView('quest')" style="background:linear-gradient(135deg,#1a3a2a,#0d2018);border-color:var(--teal);color:var(--teal-light)">⚔️ روح لمهام اليوم</button>
-    </div>
+    <button class="home-cta" onclick="showView('quest')">⚔️ روح لمهام اليوم</button>
   </div>
 
   <!-- QUEST -->
@@ -270,7 +280,7 @@
         <span style="font-size:18px;color:var(--gold-light);font-weight:700" id="todayXP">0</span>
       </div>
       <button class="submit-btn" id="submitBtn" onclick="submitDay()">خلّص اليوم ✓</button>
-      <button class="submit-btn" id="reopenBtn" onclick="reopenDay()" style="display:none;margin-top:8px;background:linear-gradient(135deg,#1a1a2e,#0d0d1a);border-color:var(--border);color:var(--text-dim);font-size:15px;">✏️ عدّل هذا اليوم</button>
+      <button class="reopen-btn" id="reopenBtn" onclick="reopenDay()" style="display:none">✏️ عدّل هذا اليوم</button>
     </div>
   </div>
 
@@ -431,14 +441,19 @@ function updateQuestUI() {
 
   pillars.forEach(pillar => {
     let pillarXP = 0;
-    pillar.tasks.forEach(t => { pillarXP += Math.round(t.xp * getCheckValue(checks, t.id) / 100); });
+    let pillarMax = 0;
+    pillar.tasks.forEach(t => {
+      pillarMax += t.xp;
+      pillarXP += Math.round(t.xp * getCheckValue(checks, t.id) / 100);
+    });
+    const pillarComplete = pillarMax > 0 && pillarXP === pillarMax;
 
     const pillarDiv = document.createElement('div');
     pillarDiv.className = 'pillar';
 
     const hdr = document.createElement('div');
     hdr.className = 'pillar-header';
-    hdr.innerHTML = `<span class="pillar-icon">${pillar.icon}</span><span class="pillar-name">${pillar.name}</span><span class="pillar-xp">${pillarXP} XP</span>`;
+    hdr.innerHTML = `<span class="pillar-icon">${pillar.icon}</span><span class="pillar-name">${pillar.name}</span><span class="pillar-xp${pillarComplete ? ' complete' : ''}">${pillarComplete ? '✓ ' : ''}${pillarXP} XP</span>`;
     pillarDiv.appendChild(hdr);
 
     const tasksDiv = document.createElement('div');
@@ -519,8 +534,8 @@ function buildPartialItem(task, val, pillar, submitted) {
   lbl.textContent = task.text;
 
   const earned = document.createElement('span');
-  earned.className = 'task-partial-earned';
   const earnedXP = Math.round(task.xp * val / 100);
+  earned.className = 'task-partial-earned' + (earnedXP > 0 ? ' has-xp' : '');
   earned.textContent = earnedXP + ' / ' + task.xp + ' XP';
 
   const actions = buildActionBtns(task, pillar, wrap);
@@ -729,6 +744,11 @@ function navigateDay(d) {
   viewDayIdx = n; updateQuestUI();
 }
 
+function jumpToDay(idx) {
+  viewDayIdx = idx;
+  showView('quest');
+}
+
 // ── LOG ──
 function updateLogUI() {
   const c = document.getElementById('logContainer');
@@ -739,7 +759,7 @@ function updateLogUI() {
   c.innerHTML = entries.map(([idx,day])=>{
     const pct = Math.min(100,(day.xp/maxXP)*100);
     const col = day.perfect?'var(--gold)':(pct>60?'var(--teal)':'var(--text-dim)');
-    return `<div class="log-item">
+    return `<div class="log-item" onclick="jumpToDay(${+idx})">
       <div class="log-day">${+idx+1}</div>
       <div class="log-bar-wrap">
         <div class="log-label">${day.perfect?'⭐ يوم مثالي':'يوم عادي'}</div>
