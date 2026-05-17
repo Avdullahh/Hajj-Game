@@ -270,6 +270,7 @@
         <span style="font-size:18px;color:var(--gold-light);font-weight:700" id="todayXP">0</span>
       </div>
       <button class="submit-btn" id="submitBtn" onclick="submitDay()">خلّص اليوم ✓</button>
+      <button class="submit-btn" id="reopenBtn" onclick="reopenDay()" style="display:none;margin-top:8px;background:linear-gradient(135deg,#1a1a2e,#0d0d1a);border-color:var(--border);color:var(--text-dim);font-size:15px;">✏️ عدّل هذا اليوم</button>
     </div>
   </div>
 
@@ -466,6 +467,9 @@ function updateQuestUI() {
   const { xp, perfect } = calcDayXP(checks, pillars);
   document.getElementById('bonusBanner').classList.toggle('unlocked', perfect);
   document.getElementById('todayXP').textContent = xp + ' نقطة';
+
+  const reopenBtn = document.getElementById('reopenBtn');
+  reopenBtn.style.display = submitted ? 'block' : 'none';
 
   const btn = document.getElementById('submitBtn');
   if (submitted) {
@@ -688,6 +692,33 @@ function submitDay() {
   const { current: newLvl } = getLevelData(state.totalXP);
   if (newLvl.level > prevLvl.level) showLevelUp(newLvl);
   spawnParticles();
+  updateAllUI();
+}
+
+// ── REOPEN DAY ──
+function reopenDay() {
+  const day = state.days[viewDayIdx];
+  if (!day) return;
+
+  // Reverse XP and stats
+  state.totalXP = Math.max(0, (state.totalXP||0) - day.xp);
+  if (day.perfect) state.perfectDays = Math.max(0, (state.perfectDays||0) - 1);
+
+  // Restore checks so the user can re-edit
+  if (!state.todayChecks) state.todayChecks = {};
+  state.todayChecks[viewDayIdx] = { ...day.tasks };
+
+  // Recompute streak from scratch from submitted days
+  delete state.days[viewDayIdx];
+  let streak = 0;
+  const todayIdx = getTodayIndex();
+  for (let i = todayIdx; i >= 0; i--) {
+    if (state.days[i]?.done) streak++;
+    else break;
+  }
+  state.streak = streak;
+
+  saveState();
   updateAllUI();
 }
 
