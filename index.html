@@ -272,6 +272,20 @@
   .evidence-delete { background: none; border: 1px solid transparent; border-radius: 5px; color: var(--text-dim); cursor: pointer; font-family: 'Amiri', serif; min-width: 30px; min-height: 30px; flex-shrink: 0; }
   .evidence-delete:hover { border-color: var(--red); color: var(--red-light); background: rgba(122,32,32,0.1); }
 
+  /* MEMORY */
+  .memory-day-group { margin-bottom: 16px; }
+  .memory-day-header { font-size: 13px; color: var(--gold-dim); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: center; cursor: pointer; }
+  .memory-day-header:hover { color: var(--gold); }
+  .memory-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: border-color 0.2s; }
+  .memory-item:hover { border-color: var(--gold-dim); }
+  .memory-item-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .memory-source-badge { font-size: 11px; border-radius: 10px; padding: 1px 8px; flex-shrink: 0; border: 1px solid; }
+  .memory-source-round { background: rgba(200,151,42,0.08); border-color: var(--gold-dim); color: var(--gold-dim); }
+  .memory-source-evidence { background: rgba(42,122,106,0.1); border-color: var(--teal); color: var(--teal-light); }
+  .memory-source-task { background: rgba(200,151,42,0.06); border-color: var(--border); color: var(--text-dim); }
+  .memory-item-label { font-size: 13px; color: var(--cream-dim); flex: 1; }
+  .memory-item-note { font-size: 14px; color: var(--text); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+
   /* HOME CTA */
   .home-cta { width: 100%; background: linear-gradient(135deg,#1a3a2a,#0d2018); border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal-light); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; margin-top: 16px; }
   .home-cta:hover { box-shadow: 0 4px 16px rgba(42,170,138,0.2); }
@@ -378,6 +392,10 @@
     <div class="panel">
       <div class="section-title">سجل الموسم</div>
       <div id="logContainer"><div class="empty">ما فيه أيام منتهية بعد</div></div>
+    </div>
+    <div class="panel">
+      <div class="section-title">📝 ذاكرة الموسم</div>
+      <div id="memoryContainer"><div class="empty">ما فيه ملاحظات بعد</div></div>
     </div>
     <div class="panel">
       <div class="section-title">⚙️ إعدادات الموسم</div>
@@ -1338,6 +1356,61 @@ function saveSettings() {
 }
 
 // ── LOG ──
+function buildMemoryView() {
+  const mc = document.getElementById('memoryContainer');
+  if (!mc) return;
+  const entries = Object.entries(state.days).filter(([,d]) => d.done);
+  if (!entries.length) { mc.innerHTML = '<div class="empty">ما فيه ملاحظات بعد</div>'; return; }
+  entries.sort(([a],[b]) => +a - +b);
+
+  const allCustomTasks = {};
+  Object.entries(state.customTasks||{}).forEach(([pid, tasks]) => tasks.forEach(t => { allCustomTasks[t.id] = t; }));
+
+  let html = '';
+  let totalNotes = 0;
+
+  entries.forEach(([idx, day]) => {
+    const dayNum = +idx;
+    const items = [];
+
+    (day.zoneRounds||[]).forEach(r => {
+      if (r.note && r.note.trim()) items.push({ source: 'جولة', label: r.name + (r.type ? ' — ' + r.type : ''), note: r.note.trim() });
+    });
+
+    (day.evidence||[]).forEach(e => {
+      items.push({ source: 'دليل', label: e.category, note: e.text });
+    });
+
+    const dayCustom = state.dayCustomTasks?.[dayNum] || {};
+    Object.values(dayCustom).forEach(tasks => tasks.forEach(t => {
+      if (t.note && t.note.trim() && day.tasks?.[t.id] > 0) items.push({ source: 'مهمة', label: t.text, note: t.note.trim() });
+    }));
+    Object.values(state.customTasks||{}).forEach(tasks => tasks.forEach(t => {
+      if (t.note && t.note.trim() && day.tasks?.[t.id] > 0) items.push({ source: 'مهمة', label: t.text, note: t.note.trim() });
+    }));
+
+    if (!items.length) return;
+    totalNotes += items.length;
+
+    const date = getDateForDay(dayNum);
+    html += `<div class="memory-day-group">`;
+    html += `<div class="memory-day-header" onclick="jumpToDay(${dayNum})">اليوم ${dayNum+1} · ${date}</div>`;
+    items.forEach(item => {
+      const cls = item.source === 'جولة' ? 'memory-source-round' : item.source === 'دليل' ? 'memory-source-evidence' : 'memory-source-task';
+      html += `<div class="memory-item" onclick="jumpToDay(${dayNum})">
+        <div class="memory-item-top">
+          <span class="memory-source-badge ${cls}">${item.source}</span>
+          <span class="memory-item-label">${item.label}</span>
+        </div>
+        <div class="memory-item-note">${item.note}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  mc.innerHTML = totalNotes ? html : '<div class="empty">ما فيه ملاحظات مسجلة بعد</div>';
+}
+
 function updateLogUI() {
   const eDate = document.getElementById('editStartDate');
   const eDays = document.getElementById('editTotalDays');
@@ -1361,6 +1434,7 @@ function updateLogUI() {
       <div class="log-xp">${day.xp} XP${extra ? ' +' + extra + ' متابعة' : ''}</div>
     </div>`;
   }).join('');
+  buildMemoryView();
 }
 
 function updateAllUI() { updateHomeUI(); updateQuestUI(); updateLogUI(); }
