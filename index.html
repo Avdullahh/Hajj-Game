@@ -242,6 +242,13 @@
   .zone-round-card-fill { height: 100%; border-radius: 4px; background: var(--gold); }
   .zone-round-delete { background: none; border: 1px solid transparent; border-radius: 5px; color: var(--text-dim); cursor: pointer; font-family: 'Amiri', serif; min-width: 30px; min-height: 30px; }
   .zone-round-delete:hover { border-color: var(--red); color: var(--red-light); background: rgba(122,32,32,0.1); }
+  .round-type-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+  .round-type-btn { background: none; border: 1px solid var(--border); border-radius: 20px; color: var(--text-dim); font-family: 'Amiri', serif; font-size: 13px; padding: 4px 12px; cursor: pointer; transition: all 0.2s; }
+  .round-type-btn.active { background: rgba(200,151,42,0.15); border-color: var(--gold-dim); color: var(--gold-light); }
+  .zone-round-card-type { font-size: 11px; background: rgba(200,151,42,0.1); border: 1px solid var(--gold-dim); border-radius: 10px; padding: 1px 8px; color: var(--gold-dim); flex-shrink: 0; }
+  .readiness-breakdown { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .readiness-breakdown-chip { font-size: 12px; color: var(--text-dim); background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 2px 10px; }
+  .readiness-breakdown-chip.has-data { color: var(--gold); border-color: var(--gold-dim); }
 
   /* HOME CTA */
   .home-cta { width: 100%; background: linear-gradient(135deg,#1a3a2a,#0d2018); border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal-light); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; margin-top: 16px; }
@@ -307,6 +314,7 @@
       <div class="readiness-bar-track">
         <div class="readiness-bar-fill" id="readinessBarFill" style="width:0%"></div>
       </div>
+      <div class="readiness-breakdown" id="readinessBreakdown" style="display:none"></div>
     </div>
     <div class="panel" id="homeRoundsPanel">
       <div class="section-title">جولات اليوم</div>
@@ -368,23 +376,23 @@
 <script>
 const BASE_PILLARS = [
   { id: 'attendance', icon: '🕌', name: 'الحضور والانضباط', tasks: [
-    { id: 'checkin',     text: 'الحضور وتسجيل البداية في الوقت المحدد', xp: 12, partial: false, core: true }, // badge: الانضباط
-    { id: 'briefing',    text: 'حضور الإحاطة الصباحية واستلام التعليمات', xp: 10, partial: false, core: true }, // badge: الانضباط
-    { id: 'shift_ready', text: 'الجاهزية الميدانية طوال الوردية', xp: 18, partial: true } // badge: الانضباط
+    { id: 'checkin',     text: 'تثبيت بداية اليوم والاستعداد للعمل', xp: 12, partial: false, core: true }, // badge: الانضباط
+    { id: 'briefing',    text: 'فهم أولويات اليوم قبل الانشغال بالتفاصيل', xp: 10, partial: false, core: true }, // badge: الانضباط
+    { id: 'shift_ready', text: 'الحفاظ على حضور ذهني وعملي مستقر', xp: 18, partial: true } // badge: الانضباط
   ]},
-  { id: 'facilities', icon: '🚶', name: 'الممرات والمرافق', tasks: [
-    { id: 'corridors',         text: 'فحص انسيابية الممرات ونقاط التكدس', xp: 18, partial: true,  readiness: true },
-    { id: 'corridor_crowding', text: 'الإبلاغ عند وجود ازدحام في الممرات', xp: 8,  partial: false, readiness: true },
-    { id: 'fridges',           text: 'فحص توفر المياه في الثلاجات',         xp: 16, partial: true,  readiness: true },
-    { id: 'fridge_empty',      text: 'تصعيد مشكلة ثلاجة فارغة',             xp: 8,  partial: false, readiness: true },
-    { id: 'cleaning',          text: 'متابعة مستوى النظافة في المرافق',      xp: 16, partial: true,  readiness: true },
-    { id: 'cleaning_weak',     text: 'تسجيل مرفق عند ضعف مستوى النظافة',   xp: 8,  partial: false, readiness: true }
+  { id: 'facilities', icon: '🚶', name: 'الموقع والجولات', tasks: [
+    { id: 'corridors',         text: 'المرور على صورة الموقع العامة', xp: 18, partial: true,  readiness: true },
+    { id: 'corridor_crowding', text: 'مراجعة وجود ما يستحق الانتباه', xp: 8,  partial: false, readiness: true },
+    { id: 'fridges',           text: 'ملاحظة الاحتياجات الأساسية أثناء الحركة',         xp: 16, partial: true,  readiness: true },
+    { id: 'fridge_empty',      text: 'التأكد من عدم ترك احتياج واضح بلا متابعة',             xp: 8,  partial: false, readiness: true },
+    { id: 'cleaning',          text: 'تقدير جاهزية الموقع خلال اليوم',      xp: 16, partial: true,  readiness: true },
+    { id: 'cleaning_weak',     text: 'مراجعة ما يحتاج متابعة لاحقة',   xp: 8,  partial: false, readiness: true }
   ]},
   { id: 'reports', icon: '📋', name: 'التقارير والمتابعة', tasks: [
-    { id: 'update',                  text: 'رفع تحديث واضح لمسؤول الزون',                       xp: 22, partial: true,  core: true, readiness: true },
-    { id: 'log_note',                text: 'تسجيل ملاحظة ميدانية قابلة للتنفيذ',                  xp: 14, partial: false },
-    { id: 'close_note',              text: 'عدم وجود ملاحظة عاجلة مفتوحة بنهاية الوردية',         xp: 24, partial: false, core: true, readiness: true },
-    { id: 'solve_before_escalation', text: 'حل مشكلة ميدانية قبل التصعيد',                         xp: 26, partial: false }
+    { id: 'update',                  text: 'إبقاء الصورة واضحة لمن يحتاجها',                       xp: 22, partial: true,  core: true, readiness: true },
+    { id: 'log_note',                text: 'توثيق شيء واحد يستحق الرجوع له',                  xp: 14, partial: false },
+    { id: 'close_note',              text: 'مراجعة المفتوح قبل إغلاق اليوم',         xp: 24, partial: false, core: true, readiness: true },
+    { id: 'solve_before_escalation', text: 'اختيار التصرف الأنسب لما ظهر خلال اليوم',                         xp: 26, partial: false }
   ]}
 ];
 
@@ -531,17 +539,28 @@ function calcReadiness(rounds) {
   return Math.round(rounds.reduce((sum, round) => sum + normalizePct(round.readiness), 0) / rounds.length);
 }
 
-function addZoneRound(dayIdx, name, readiness, note) {
+function addZoneRound(dayIdx, name, readiness, note, type) {
   if (!state.zoneRoundsDrafts) state.zoneRoundsDrafts = {};
   if (!Array.isArray(state.zoneRoundsDrafts[dayIdx])) state.zoneRoundsDrafts[dayIdx] = [];
   state.zoneRoundsDrafts[dayIdx].push({
     id: 'round_'+Date.now(),
     name,
+    type: type || 'أخرى',
     readiness: normalizePct(readiness),
     note
   });
   saveState();
   updateAllUI();
+}
+
+function calcReadinessBreakdown(rounds) {
+  const types = ['صباح', 'مساء', 'ليل', 'أخرى'];
+  const result = {};
+  types.forEach(t => {
+    const group = rounds.filter(r => (r.type || 'أخرى') === t);
+    result[t] = group.length ? Math.round(group.reduce((s, r) => s + normalizePct(r.readiness), 0) / group.length) : null;
+  });
+  return result;
 }
 
 function deleteZoneRound(dayIdx, roundId) {
@@ -562,11 +581,15 @@ function buildZoneRoundCard(round, dayIdx, submitted) {
   name.className = 'zone-round-card-name';
   name.textContent = round.name;
 
+  const typeBadge = document.createElement('div');
+  typeBadge.className = 'zone-round-card-type';
+  typeBadge.textContent = round.type || 'أخرى';
+
   const pct = document.createElement('div');
   pct.className = 'zone-round-card-pct';
   pct.textContent = normalizePct(round.readiness) + '%';
 
-  top.append(name, pct);
+  top.append(name, typeBadge, pct);
   if (!submitted) {
     const del = document.createElement('button');
     del.className = 'zone-round-delete';
@@ -618,6 +641,12 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
     form.className = 'zone-round-form';
     form.innerHTML = `
       <input class="zone-round-name" type="text" placeholder="اسم الجولة">
+      <div class="round-type-selector">
+        <button class="round-type-btn active" data-type="صباح">صباح</button>
+        <button class="round-type-btn" data-type="مساء">مساء</button>
+        <button class="round-type-btn" data-type="ليل">ليل</button>
+        <button class="round-type-btn" data-type="أخرى">أخرى</button>
+      </div>
       <div class="zone-round-row">
         <input class="zone-round-slider" type="range" min="0" max="100" value="75">
         <span class="zone-round-slider-value">75%</span>
@@ -630,11 +659,19 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
     const slider = form.querySelector('.zone-round-slider');
     const value = form.querySelector('.zone-round-slider-value');
     const noteInput = form.querySelector('.zone-round-note');
+    let selectedType = 'صباح';
+    form.querySelectorAll('.round-type-btn').forEach(btn => {
+      btn.onclick = () => {
+        form.querySelectorAll('.round-type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedType = btn.dataset.type;
+      };
+    });
     slider.oninput = () => { value.textContent = slider.value + '%'; };
     const doAdd = () => {
       const name = nameInput.value.trim();
       if (!name) return;
-      addZoneRound(dayIdx, name, slider.value, noteInput.value.trim());
+      addZoneRound(dayIdx, name, slider.value, noteInput.value.trim(), selectedType);
     };
     form.querySelector('.zone-round-add').onclick = doAdd;
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
@@ -686,6 +723,20 @@ function updateHomeUI() {
   document.getElementById('readinessStatus').textContent = rStatus;
   document.getElementById('readinessBarFill').style.width      = rPct + '%';
   document.getElementById('readinessBarFill').style.background = rColor;
+
+  const breakdownEl = document.getElementById('readinessBreakdown');
+  const rounds = getZoneRoundsForDay(d);
+  if (rounds.length && breakdownEl) {
+    const bd = calcReadinessBreakdown(rounds);
+    breakdownEl.style.display = 'flex';
+    breakdownEl.innerHTML = ['صباح','مساء','ليل','أخرى']
+      .filter(t => bd[t] !== null)
+      .map(t => `<span class="readiness-breakdown-chip has-data">${t} ${bd[t]}%</span>`)
+      .join('');
+  } else if (breakdownEl) {
+    breakdownEl.style.display = 'none';
+  }
+
   renderHomeRounds(d);
 }
 
