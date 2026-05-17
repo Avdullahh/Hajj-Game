@@ -526,20 +526,42 @@ function saveState() { return safeSetStorage(STORAGE_KEY, JSON.stringify(state))
 
 function migratePhantomXP() {
   if (!state.days) return;
-  let removed = 0;
-  Object.entries(state.days).forEach(([idx, day]) => {
+  let totalDelta = 0;
+  Object.entries(state.days).forEach(([, day]) => {
     if (!day.done) return;
-    const tasks = day.tasks || {};
-    const anyChecked = Object.values(tasks).some(v => v > 0);
-    if (!anyChecked && (day.xp > 0 || day.extraXP > 0)) {
-      const phantom = day.xp || 0;
-      state.totalXP = Math.max(0, (state.totalXP || 0) - phantom);
-      day.xp = 0; day.baseXP = 0; day.activityXP = 0; day.extraXP = 0;
-      day.multiplierXP = 0; day.perfect = false;
-      removed += phantom;
+    const savedTasks = day.tasks || {};
+    // Use pillarsSnapshot if available, else fall back to BASE_PILLARS
+    const snapshot = day.pillarsSnapshot || BASE_PILLARS;
+    let recalcBase = 0, baseTotal = 0, baseFullDone = 0, recalcExtra = 0;
+    snapshot.forEach(p => (p.tasks || []).forEach(t => {
+      const v = savedTasks[t.id] || 0;
+      const earned = Math.round(t.xp * v / 100);
+      if (t._scope === 'base' || !t._scope) {
+        baseTotal++;
+        recalcBase += earned;
+        if (v === 100) baseFullDone++;
+      } else {
+        recalcExtra += earned;
+      }
+    }));
+    const perfect = baseTotal > 0 && baseFullDone === baseTotal;
+    const recalcBaseXP = recalcBase + (perfect ? PERFECT_BONUS : 0);
+    const recalcLevelXP = Math.round(recalcBaseXP * (day.multiplier || 1));
+    const storedXP = day.xp || 0;
+    if (storedXP !== recalcLevelXP) {
+      const diff = storedXP - recalcLevelXP;
+      totalDelta += diff;
+      day.xp = recalcLevelXP;
+      day.baseXP = recalcBaseXP;
+      day.activityXP = recalcLevelXP + recalcExtra;
+      day.extraXP = recalcExtra;
+      day.perfect = perfect;
     }
   });
-  if (removed > 0) { saveState(); console.info('migratePhantomXP: removed ' + removed + ' XP'); }
+  if (totalDelta !== 0) {
+    state.totalXP = Math.max(0, (state.totalXP || 0) - totalDelta);
+    saveState();
+  }
 }
 
 function $(id) { return document.getElementById(id); }
