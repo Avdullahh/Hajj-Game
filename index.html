@@ -1237,6 +1237,10 @@ function deleteTask(task, pillar) {
     const hiddenTasks = ensureArray(state, 'hiddenTasks');
     if (!hiddenTasks.includes(task.id)) hiddenTasks.push(task.id);
   }
+  // Remove the task's check value from all unsaved day drafts
+  if (state.todayChecks) {
+    Object.values(state.todayChecks).forEach(dayChecks => { delete dayChecks[task.id]; });
+  }
   saveState(); updateQuestUI();
 }
 
