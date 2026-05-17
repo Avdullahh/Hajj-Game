@@ -1492,7 +1492,7 @@ function navigateDay(d) {
 
 function jumpToDay(idx) {
   viewDayIdx = idx;
-  showView('quest', true);
+  showView('quest');
 }
 
 function toggleDayPicker() {
@@ -1656,14 +1656,14 @@ function showLevelUp(ld) {
 function closeLevelup() { $('levelupOverlay').classList.remove('show'); }
 
 // ── VIEWS ──
-function showView(name, preserveDay = false) {
+function showView(name) {
   clearActive('.view');
   clearActive('.nav-btn');
   $('view-'+name).classList.add('active');
   $('nav-'+name).classList.add('active');
   closeDayPicker();
   if (name==='home')  updateHomeUI();
-  if (name==='quest') { if (!preserveDay) viewDayIdx=getTodayIndex(); updateQuestUI(); }
+  if (name==='quest') updateQuestUI();
   if (name==='log')   updateLogUI();
 }
 
