@@ -524,6 +524,24 @@ function loadState() {
 }
 function saveState() { return safeSetStorage(STORAGE_KEY, JSON.stringify(state)); }
 
+function migratePhantomXP() {
+  if (!state.days) return;
+  let removed = 0;
+  Object.entries(state.days).forEach(([idx, day]) => {
+    if (!day.done) return;
+    const tasks = day.tasks || {};
+    const anyChecked = Object.values(tasks).some(v => v > 0);
+    if (!anyChecked && (day.xp > 0 || day.extraXP > 0)) {
+      const phantom = day.xp || 0;
+      state.totalXP = Math.max(0, (state.totalXP || 0) - phantom);
+      day.xp = 0; day.baseXP = 0; day.activityXP = 0; day.extraXP = 0;
+      day.multiplierXP = 0; day.perfect = false;
+      removed += phantom;
+    }
+  });
+  if (removed > 0) { saveState(); console.info('migratePhantomXP: removed ' + removed + ' XP'); }
+}
+
 function $(id) { return document.getElementById(id); }
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -1320,8 +1338,10 @@ function setPartial(taskId, xp, pct, scope = 'base') {
 
 // ── SUBMIT ──
 function submitDay() {
-  const checks  = (state.todayChecks||{})[viewDayIdx]||{};
   const pillars = getPillars();
+  const validIds = new Set(pillars.flatMap(p => p.tasks.map(t => t.id)));
+  const rawChecks = (state.todayChecks||{})[viewDayIdx]||{};
+  const checks = Object.fromEntries(Object.entries(rawChecks).filter(([id]) => validIds.has(id)));
   const { xp, activityXP, extraXP, perfect } = calcDayXP(checks, pillars);
   const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
   const levelXP = Math.round(xp * multiplier);
@@ -1377,8 +1397,10 @@ function reopenDay() {
   state.totalXP = Math.max(0, (state.totalXP||0) - day.xp);
   if (day.perfect) state.perfectDays = Math.max(0, (state.perfectDays||0) - 1);
 
-  // Restore checks so the user can re-edit
-  ensureObject(state, 'todayChecks')[viewDayIdx] = { ...day.tasks };
+  // Restore checks so the user can re-edit, keeping only tasks still in current pillars
+  const validReopenIds = new Set(getPillars(viewDayIdx).flatMap(p => p.tasks.map(t => t.id)));
+  const restoredChecks = Object.fromEntries(Object.entries(day.tasks||{}).filter(([id]) => validReopenIds.has(id)));
+  ensureObject(state, 'todayChecks')[viewDayIdx] = restoredChecks;
   ensureObject(state, 'zoneRoundsDrafts')[viewDayIdx] = cloneItems(day.zoneRounds);
   ensureObject(state, 'evidenceDrafts')[viewDayIdx] = cloneItems(day.evidence);
 
@@ -1547,6 +1569,7 @@ function startSession() {
 window.onload = () => {
   $('startDateInput').value=new Date().toISOString().slice(0,10);
   if(loadState()&&state.startDate){
+    migratePhantomXP();
     hideSetup();
     viewDayIdx=getTodayIndex(); updateAllUI();
   }
