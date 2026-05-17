@@ -100,15 +100,16 @@
   .task-partial-label { flex: 1; font-size: 15px; color: var(--text); }
   .task-partial-earned { font-size: 12px; color: var(--gold-dim); flex-shrink: 0; transition: color 0.2s; }
   .task-partial-earned.has-xp { color: var(--gold); }
-  .pct-btns { display: flex; gap: 5px; }
-  .pct-btn {
-    flex: 1; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text-dim); font-family: 'Amiri', serif;
-    font-size: 13px; padding: 5px 2px; cursor: pointer; transition: all 0.2s; text-align: center;
+  .pct-input-row { display: flex; align-items: center; gap: 8px; }
+  .pct-input {
+    width: 72px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--gold); font-family: 'Amiri', serif;
+    font-size: 16px; padding: 6px 10px; outline: none; text-align: center;
+    transition: border-color 0.2s;
   }
-  .pct-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .pct-btn.active { background: rgba(42,122,106,0.2); border-color: var(--teal); color: var(--teal-light); font-weight: 700; }
-  .pct-btn.active-100 { background: rgba(42,122,106,0.3); border-color: var(--teal); color: var(--teal-light); box-shadow: 0 0 6px rgba(42,170,138,0.3); }
+  .pct-input:focus { border-color: var(--gold-dim); }
+  .pct-input.full { border-color: var(--teal); color: var(--teal-light); background: rgba(42,122,106,0.1); }
+  .pct-label { font-size: 13px; color: var(--text-dim); flex: 1; }
 
   /* EDIT ROW */
   .task-edit-row { background: var(--bg2); border: 1px solid var(--gold-dim); border-radius: var(--radius); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
@@ -328,7 +329,6 @@ const LEVELS = [
   { level: 10, title: 'أفضل موظف ⭐',   emoji: '🕌', xpNeeded: 3000 },
 ];
 
-const PCT_OPTIONS = [0, 25, 50, 75, 100];
 
 let state = {};
 let viewDayIdx = 0;
@@ -543,14 +543,34 @@ function buildPartialItem(task, val, pillar, submitted) {
   wrap.appendChild(top);
 
   const pctRow = document.createElement('div');
-  pctRow.className = 'pct-btns';
-  PCT_OPTIONS.forEach(pct => {
-    const b = document.createElement('button');
-    b.className = 'pct-btn' + (val === pct ? (pct === 100 ? ' active-100' : ' active') : '');
-    b.textContent = pct + '%';
-    if (!submitted) b.onclick = () => setPartial(task.id, task.xp, pct);
-    pctRow.appendChild(b);
-  });
+  pctRow.className = 'pct-input-row';
+
+  const inp = document.createElement('input');
+  inp.type = 'number';
+  inp.min = 0; inp.max = 100;
+  inp.value = val;
+  inp.className = 'pct-input' + (val === 100 ? ' full' : '');
+  inp.disabled = !!submitted;
+
+  const lbl = document.createElement('span');
+  lbl.className = 'pct-label';
+  lbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * val / 100) + ' XP';
+
+  inp.oninput = () => {
+    let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
+    inp.className = 'pct-input' + (pct === 100 ? ' full' : '');
+    lbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * pct / 100) + ' XP';
+    earned.className = 'task-partial-earned' + (pct > 0 ? ' has-xp' : '');
+    earned.textContent = Math.round(task.xp * pct / 100) + ' / ' + task.xp + ' XP';
+  };
+  inp.onchange = () => {
+    let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
+    inp.value = pct;
+    setPartial(task.id, task.xp, pct);
+  };
+
+  pctRow.appendChild(inp);
+  pctRow.appendChild(lbl);
   wrap.appendChild(pctRow);
   return wrap;
 }
@@ -586,7 +606,7 @@ function showEditRow(task, pillar, el) {
     </div>
     <div class="task-edit-partial-wrap">
       <input type="checkbox" id="editPartialChk" ${task.partial ? 'checked' : ''}>
-      <label for="editPartialChk">مهمة جزئية (تُكتمل بالنسبة)</label>
+      <label for="editPartialChk">نسبة الاتمام (يدوي)</label>
     </div>
     <div class="task-edit-actions">
       <button class="task-edit-save">احفظ</button>
@@ -641,7 +661,7 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
     <div class="add-task-row2">
       <div class="add-task-partial-wrap">
         <input type="checkbox" id="addPartialChk">
-        <label for="addPartialChk">مهمة جزئية</label>
+        <label for="addPartialChk">نسبة الاتمام</label>
       </div>
       <button class="add-task-submit">ضيف</button>
       <button class="add-task-cancel-btn">إلغي</button>
