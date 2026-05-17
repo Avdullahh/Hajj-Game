@@ -51,12 +51,13 @@
   .level-num { font-family: 'Cinzel Decorative', cursive; font-size: 13px; color: var(--gold-light); }
   .xp-section { margin-top: 8px; }
   .xp-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  .xp-multiplier { text-align: center; font-size: 12px; color: var(--teal-light); margin-bottom: 6px; }
   .xp-bar-track { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; height: 10px; overflow: hidden; }
   .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold-light)); border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); position: relative; }
   .xp-bar-fill::after { content: ''; position: absolute; top: 0; right: 0; width: 20px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3)); animation: shimmer-bar 2s infinite; }
   @keyframes shimmer-bar { 0%,100%{opacity:0} 50%{opacity:1} }
 
-  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 8px; text-align: center; }
   .stat-value { font-family: 'Cinzel Decorative', cursive; font-size: 20px; color: var(--gold-light); display: block; }
   .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
@@ -86,7 +87,9 @@
   .task-item.done .task-text { color: var(--teal-light); }
   .task-check { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 13px; }
   .task-item.done .task-check { background: var(--teal); border-color: var(--teal); color: white; box-shadow: 0 0 8px rgba(42,170,138,0.4); }
-  .task-text { flex: 1; font-size: 15px; cursor: pointer; }
+  .task-copy { flex: 1; min-width: 0; cursor: pointer; }
+  .task-text { display: block; font-size: 15px; }
+  .task-note { display: block; margin-top: 4px; color: var(--cream-dim); font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
   .task-xp { font-size: 12px; color: var(--text-dim); flex-shrink: 0; }
   .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
   .task-action-btn { background: none; border: 1px solid transparent; border-radius: 5px; padding: 6px 10px; cursor: pointer; font-size: 14px; transition: all 0.2s; color: var(--text-dim); font-family: 'Amiri', serif; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
@@ -100,6 +103,7 @@
   .task-partial-label { flex: 1; font-size: 15px; color: var(--text); }
   .task-partial-earned { font-size: 12px; color: var(--gold-dim); flex-shrink: 0; transition: color 0.2s; }
   .task-partial-earned.has-xp { color: var(--gold); }
+  .task-partial-note { margin: -2px 0 8px; color: var(--cream-dim); font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
   .pct-input-row { display: flex; align-items: center; gap: 8px; }
   .pct-input {
     width: 72px; background: var(--bg); border: 1px solid var(--border);
@@ -118,6 +122,8 @@
   .task-edit-text:focus { border-color: var(--gold-dim); }
   .task-edit-xp { width: 62px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--gold); font-family: 'Amiri', serif; font-size: 15px; padding: 7px 8px; outline: none; text-align: center; }
   .task-edit-xp:focus { border-color: var(--gold-dim); }
+  .task-edit-note, .add-task-note { width: 100%; min-height: 68px; resize: vertical; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Amiri', serif; font-size: 14px; padding: 8px 10px; outline: none; transition: border-color 0.2s; text-align: right; line-height: 1.5; }
+  .task-edit-note:focus, .add-task-note:focus { border-color: var(--gold-dim); }
   .task-edit-partial-wrap { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-dim); }
   .task-edit-partial-wrap input[type=checkbox] { accent-color: var(--teal); width: 16px; height: 16px; cursor: pointer; }
   .task-edit-actions { display: flex; gap: 6px; }
@@ -135,6 +141,7 @@
   .add-task-input:focus { border-color: var(--gold-dim); }
   .add-task-xp { width: 60px; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; color: var(--gold); font-family: 'Amiri', serif; font-size: 15px; padding: 7px 8px; outline: none; text-align: center; }
   .add-task-xp:focus { border-color: var(--gold-dim); }
+  .add-task-note { background: var(--bg2); }
   .add-task-row2 { display: flex; gap: 8px; align-items: center; }
   .add-task-partial-wrap { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-dim); flex: 1; }
   .add-task-partial-wrap input[type=checkbox] { accent-color: var(--teal); width: 16px; height: 16px; cursor: pointer; }
@@ -211,6 +218,30 @@
   .readiness-status { font-size: 14px; flex: 1; }
   .readiness-bar-track { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; height: 8px; overflow: hidden; }
   .readiness-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease, background 0.3s; }
+  .zone-rounds-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; }
+  .zone-rounds-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .zone-rounds-title { font-size: 15px; color: var(--cream); font-weight: 700; }
+  .zone-rounds-score { font-size: 18px; color: var(--gold-light); font-weight: 700; flex-shrink: 0; }
+  .zone-rounds-hint { color: var(--text-dim); font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+  .zone-round-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .zone-round-row { display: flex; gap: 8px; align-items: center; }
+  .zone-round-name, .zone-round-note { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Amiri', serif; font-size: 14px; padding: 8px 10px; outline: none; text-align: right; line-height: 1.5; }
+  .zone-round-name:focus, .zone-round-note:focus { border-color: var(--gold-dim); }
+  .zone-round-note { min-height: 64px; resize: vertical; }
+  .zone-round-slider { flex: 1; accent-color: var(--gold); }
+  .zone-round-slider-value { width: 48px; text-align: center; color: var(--gold-light); font-weight: 700; }
+  .zone-round-add { background: rgba(200,151,42,0.15); border: 1px solid var(--gold-dim); border-radius: 6px; color: var(--gold); font-family: 'Amiri', serif; font-size: 14px; padding: 7px 12px; cursor: pointer; }
+  .zone-round-add:hover { background: rgba(200,151,42,0.25); }
+  .zone-round-list { display: flex; flex-direction: column; gap: 8px; }
+  .zone-round-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .zone-round-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .zone-round-card-name { flex: 1; min-width: 0; color: var(--text); font-size: 15px; overflow-wrap: anywhere; }
+  .zone-round-card-pct { color: var(--gold-light); font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .zone-round-card-note { color: var(--cream-dim); font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; }
+  .zone-round-card-bar { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; height: 7px; overflow: hidden; }
+  .zone-round-card-fill { height: 100%; border-radius: 4px; background: var(--gold); }
+  .zone-round-delete { background: none; border: 1px solid transparent; border-radius: 5px; color: var(--text-dim); cursor: pointer; font-family: 'Amiri', serif; min-width: 30px; min-height: 30px; }
+  .zone-round-delete:hover { border-color: var(--red); color: var(--red-light); background: rgba(122,32,32,0.1); }
 
   /* HOME CTA */
   .home-cta { width: 100%; background: linear-gradient(135deg,#1a3a2a,#0d2018); border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal-light); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; margin-top: 16px; }
@@ -257,6 +288,7 @@
       <div class="level-badge"><span>المستوى</span><span class="level-num" id="levelNum">1</span></div>
       <div class="xp-section">
         <div class="xp-label"><span id="xpCurrent">0</span><span>نقاط الخبرة</span><span id="xpNext">—</span></div>
+        <div class="xp-multiplier" id="xpMultiplier">مضاعف المتابعة ×1.000</div>
         <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
       </div>
     </div>
@@ -264,9 +296,10 @@
       <div class="stat-box"><span class="stat-value" id="statDay">—</span><div class="stat-label">اليوم</div></div>
       <div class="stat-box"><span class="stat-value" id="statStreak">0</span><div class="stat-label">🔥 تسلسل</div></div>
       <div class="stat-box"><span class="stat-value" id="statPerfect">0</span><div class="stat-label">⭐ مثالي</div></div>
+      <div class="stat-box"><span class="stat-value" id="statFollowup">0</span><div class="stat-label">متابعة</div></div>
     </div>
     <div class="panel readiness-panel" style="margin-top:16px">
-      <div class="readiness-label">📊 جاهزية الزون — اليوم</div>
+      <div class="readiness-label">📊 جاهزية الزون — متوسط جولات اليوم</div>
       <div class="readiness-row">
         <span class="readiness-pct" id="readinessPct">0%</span>
         <span class="readiness-status" id="readinessStatus">🔴 يحتاج تصعيد</span>
@@ -274,6 +307,10 @@
       <div class="readiness-bar-track">
         <div class="readiness-bar-fill" id="readinessBarFill" style="width:0%"></div>
       </div>
+    </div>
+    <div class="panel" id="homeRoundsPanel">
+      <div class="section-title">جولات اليوم</div>
+      <div id="homeRoundsList"><div class="empty">ما فيه جولات مسجلة اليوم</div></div>
     </div>
     <button class="home-cta" onclick="showView('quest')">⚔️ روح لمهام اليوم</button>
   </div>
@@ -290,6 +327,7 @@
       <button class="day-nav-btn" id="dayNextBtn" onclick="navigateDay(1)">←</button>
     </div>
     <div class="panel">
+      <div id="zoneReadinessContainer"></div>
       <div id="pillarsContainer"></div>
       <hr class="divider">
       <div class="bonus-banner" id="bonusBanner">
@@ -351,17 +389,20 @@ const BASE_PILLARS = [
 ];
 
 const PERFECT_BONUS = 50;
+const FOLLOWUP_TASK_POINTS = 5;
+const FOLLOWUP_MULTIPLIER_PER_POINT = 0.0002;
+const FOLLOWUP_MULTIPLIER_CAP = 0.1;
 const LEVELS = [
-  { level: 1,  title: 'متطوع مبتدئ',    emoji: '🌱', xpNeeded: 0    },
-  { level: 2,  title: 'عامل مجتهد',      emoji: '⚒️', xpNeeded: 200  },
-  { level: 3,  title: 'مشرف ميداني',    emoji: '🔍', xpNeeded: 450  },
-  { level: 4,  title: 'قائد الجولات',   emoji: '🗺️', xpNeeded: 750  },
-  { level: 5,  title: 'قائد الزون',     emoji: '🛡',  xpNeeded: 1100 },
-  { level: 6,  title: 'المشرف الموثوق', emoji: '⚔️', xpNeeded: 1500 },
-  { level: 7,  title: 'المشرف المتميز', emoji: '🏆', xpNeeded: 1900 },
-  { level: 8,  title: 'مشرف النخبة',   emoji: '👑', xpNeeded: 2300 },
-  { level: 9,  title: 'حارس الزون',     emoji: '🌟', xpNeeded: 2700 },
-  { level: 10, title: 'أفضل موظف ⭐',   emoji: '🕌', xpNeeded: 3000 },
+  { level: 1,  title: 'متطوع مبتدئ',    emoji: '🌱', progress: 0    },
+  { level: 2,  title: 'عامل مجتهد',      emoji: '⚒️', progress: 0.0667 },
+  { level: 3,  title: 'مشرف ميداني',    emoji: '🔍', progress: 0.15  },
+  { level: 4,  title: 'قائد الجولات',   emoji: '🗺️', progress: 0.25  },
+  { level: 5,  title: 'قائد الزون',     emoji: '🛡',  progress: 0.3667 },
+  { level: 6,  title: 'المشرف الموثوق', emoji: '⚔️', progress: 0.5   },
+  { level: 7,  title: 'المشرف المتميز', emoji: '🏆', progress: 0.6333 },
+  { level: 8,  title: 'مشرف النخبة',   emoji: '👑', progress: 0.7667 },
+  { level: 9,  title: 'حارس الزون',     emoji: '🌟', progress: 0.9   },
+  { level: 10, title: 'أفضل موظف ⭐',   emoji: '🕌', progress: 1     },
 ];
 
 
@@ -375,9 +416,15 @@ function loadState() {
 }
 function saveState() { localStorage.setItem('hajj_rpg_v3', JSON.stringify(state)); }
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
 function initState(startDate, totalDays) {
   state = { startDate, totalDays: parseInt(totalDays), totalXP: 0, streak: 0, perfectDays: 0,
-    days: {}, todayChecks: {}, customTasks: {}, hiddenTasks: [], taskOverrides: {} };
+    days: {}, todayChecks: {}, zoneRoundsDrafts: {}, customTasks: {}, dayCustomTasks: {}, hiddenTasks: [], taskOverrides: {} };
   saveState();
 }
 
@@ -389,13 +436,14 @@ function getCheckValue(checks, taskId) {
   return +v;
 }
 
-function getPillars() {
+function getPillars(dayIdx = viewDayIdx) {
   return BASE_PILLARS.map(p => {
     const tasks = p.tasks
       .filter(t => !(state.hiddenTasks||[]).includes(t.id))
-      .map(t => { const ov = (state.taskOverrides||{})[t.id]; return ov ? {...t,...ov} : t; });
-    const custom = (state.customTasks||{})[p.id] || [];
-    return { ...p, tasks: [...tasks, ...custom] };
+      .map(t => { const ov = (state.taskOverrides||{})[t.id]; return ov ? {...t,...ov,_scope:'base'} : {...t,_scope:'base'}; });
+    const globalCustom = ((state.customTasks||{})[p.id] || []).map(t => ({...t,xp:FOLLOWUP_TASK_POINTS,_scope:'all'}));
+    const dayCustom = (((state.dayCustomTasks||{})[dayIdx]||{})[p.id] || []).map(t => ({...t,xp:FOLLOWUP_TASK_POINTS,_scope:'day'}));
+    return { ...p, tasks: [...tasks, ...globalCustom, ...dayCustom] };
   });
 }
 
@@ -414,34 +462,195 @@ function getDateForDay(idx) {
   return d.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'short', month:'short', day:'numeric' });
 }
 
+function getBaseDayMaxXP() {
+  return BASE_PILLARS.flatMap(p => p.tasks).reduce((s, t) => s + t.xp, 0) + PERFECT_BONUS;
+}
+
+function getSeasonMaxXP() {
+  return getBaseDayMaxXP() * Math.max(1, parseInt(state.totalDays, 10) || 1);
+}
+
+function getBalancedLevels() {
+  const maxXP = getSeasonMaxXP();
+  return LEVELS.map(level => ({ ...level, xpNeeded: Math.round(maxXP * level.progress) }));
+}
+
 function getLevelData(xp) {
-  let cur = LEVELS[0], nxt = LEVELS[1];
-  for (let i = LEVELS.length-1; i >= 0; i--) {
-    if (xp >= LEVELS[i].xpNeeded) { cur = LEVELS[i]; nxt = LEVELS[i+1]||null; break; }
+  const levels = getBalancedLevels();
+  let cur = levels[0], nxt = levels[1];
+  for (let i = levels.length-1; i >= 0; i--) {
+    if (xp >= levels[i].xpNeeded) { cur = levels[i]; nxt = levels[i+1]||null; break; }
   }
-  return { current: cur, next: nxt };
+  return { current: cur, next: nxt, levels, seasonMaxXP: getSeasonMaxXP() };
+}
+
+function getSavedFollowupPoints() {
+  return Object.values(state.days||{}).reduce((sum, day) => {
+    return sum + (day.extraXP || Math.max(0, (day.activityXP||day.xp||0) - (day.xp||0)));
+  }, 0);
+}
+
+function getFollowupMultiplier(points) {
+  return 1 + Math.min(FOLLOWUP_MULTIPLIER_CAP, Math.max(0, points) * FOLLOWUP_MULTIPLIER_PER_POINT);
 }
 
 // ── XP for a day given checks ──
 function calcDayXP(checks, pillars) {
-  let xp = 0, total = 0, fullDone = 0;
+  let baseXP = 0, extraXP = 0, total = 0, fullDone = 0, baseTotal = 0, baseFullDone = 0;
   pillars.forEach(p => p.tasks.forEach(t => {
     total++;
     const v = getCheckValue(checks, t.id);
-    xp += Math.round(t.xp * v / 100);
+    const earned = Math.round(t.xp * v / 100);
+    if (t._scope === 'base') {
+      baseTotal++;
+      baseXP += earned;
+      if (v === 100) baseFullDone++;
+    } else {
+      extraXP += earned;
+    }
     if (v === 100) fullDone++;
   }));
-  const perfect = total > 0 && fullDone === total;
-  if (perfect) xp += PERFECT_BONUS;
-  return { xp, perfect, total, fullDone };
+  const perfect = baseTotal > 0 && baseFullDone === baseTotal;
+  const xp = baseXP + (perfect ? PERFECT_BONUS : 0);
+  return { xp, activityXP: xp + extraXP, extraXP, perfect, total, fullDone, baseTotal, baseFullDone };
 }
 
-// ── READINESS ──
-function calcReadiness(checks) {
-  const tasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.readiness);
-  const maxXP = tasks.reduce((s, t) => s + t.xp, 0);
-  const earned = tasks.reduce((s, t) => s + Math.round(t.xp * getCheckValue(checks, t.id) / 100), 0);
-  return maxXP > 0 ? Math.round(earned / maxXP * 100) : 0;
+// ── ZONE ROUNDS / READINESS ──
+function normalizePct(value) {
+  return Math.min(100, Math.max(0, parseInt(value, 10) || 0));
+}
+
+function getZoneRoundsForDay(idx) {
+  if (Array.isArray(state.days?.[idx]?.zoneRounds)) return state.days[idx].zoneRounds;
+  if (Array.isArray((state.zoneRoundsDrafts||{})[idx])) return state.zoneRoundsDrafts[idx];
+  return [];
+}
+
+function calcReadiness(rounds) {
+  if (!rounds.length) return 0;
+  return Math.round(rounds.reduce((sum, round) => sum + normalizePct(round.readiness), 0) / rounds.length);
+}
+
+function addZoneRound(dayIdx, name, readiness, note) {
+  if (!state.zoneRoundsDrafts) state.zoneRoundsDrafts = {};
+  if (!Array.isArray(state.zoneRoundsDrafts[dayIdx])) state.zoneRoundsDrafts[dayIdx] = [];
+  state.zoneRoundsDrafts[dayIdx].push({
+    id: 'round_'+Date.now(),
+    name,
+    readiness: normalizePct(readiness),
+    note
+  });
+  saveState();
+  updateAllUI();
+}
+
+function deleteZoneRound(dayIdx, roundId) {
+  if (!state.zoneRoundsDrafts?.[dayIdx]) return;
+  state.zoneRoundsDrafts[dayIdx] = state.zoneRoundsDrafts[dayIdx].filter(round => round.id !== roundId);
+  saveState();
+  updateAllUI();
+}
+
+function buildZoneRoundCard(round, dayIdx, submitted) {
+  const card = document.createElement('div');
+  card.className = 'zone-round-card';
+
+  const top = document.createElement('div');
+  top.className = 'zone-round-card-top';
+
+  const name = document.createElement('div');
+  name.className = 'zone-round-card-name';
+  name.textContent = round.name;
+
+  const pct = document.createElement('div');
+  pct.className = 'zone-round-card-pct';
+  pct.textContent = normalizePct(round.readiness) + '%';
+
+  top.append(name, pct);
+  if (!submitted) {
+    const del = document.createElement('button');
+    del.className = 'zone-round-delete';
+    del.textContent = '✕';
+    del.title = 'احذف الجولة';
+    del.onclick = () => deleteZoneRound(dayIdx, round.id);
+    top.appendChild(del);
+  }
+
+  const bar = document.createElement('div');
+  bar.className = 'zone-round-card-bar';
+  const fill = document.createElement('div');
+  fill.className = 'zone-round-card-fill';
+  fill.style.width = normalizePct(round.readiness) + '%';
+  fill.style.background = normalizePct(round.readiness) >= 90 ? 'var(--teal)' : normalizePct(round.readiness) >= 70 ? 'var(--gold)' : 'var(--red-light)';
+  bar.appendChild(fill);
+
+  card.append(top, bar);
+
+  if (round.note) {
+    const note = document.createElement('div');
+    note.className = 'zone-round-card-note';
+    note.textContent = round.note;
+    card.appendChild(note);
+  }
+
+  return card;
+}
+
+function buildZoneReadinessPanel(dayIdx, submitted) {
+  const rounds = getZoneRoundsForDay(dayIdx);
+  const pct = calcReadiness(rounds);
+
+  const box = document.createElement('div');
+  box.className = 'zone-rounds-box';
+
+  const head = document.createElement('div');
+  head.className = 'zone-rounds-head';
+  head.innerHTML = `<div class="zone-rounds-title">📊 جولات جاهزية الزون</div><div class="zone-rounds-score">${pct}%</div>`;
+
+  const hint = document.createElement('div');
+  hint.className = 'zone-rounds-hint';
+  hint.textContent = 'كل جولة مستقلة باسمها ونسبة جاهزيتها وملاحظاتها، ولا تؤثر على XP أو اليوم المثالي.';
+
+  box.append(head, hint);
+
+  if (!submitted) {
+    const form = document.createElement('div');
+    form.className = 'zone-round-form';
+    form.innerHTML = `
+      <input class="zone-round-name" type="text" placeholder="اسم الجولة">
+      <div class="zone-round-row">
+        <input class="zone-round-slider" type="range" min="0" max="100" value="75">
+        <span class="zone-round-slider-value">75%</span>
+        <button class="zone-round-add">أضف الجولة</button>
+      </div>
+      <textarea class="zone-round-note" placeholder="ملاحظات الجولة: نقاط تحتاج متابعة، عوائق، أو مرجع للإتمام"></textarea>
+    `;
+
+    const nameInput = form.querySelector('.zone-round-name');
+    const slider = form.querySelector('.zone-round-slider');
+    const value = form.querySelector('.zone-round-slider-value');
+    const noteInput = form.querySelector('.zone-round-note');
+    slider.oninput = () => { value.textContent = slider.value + '%'; };
+    const doAdd = () => {
+      const name = nameInput.value.trim();
+      if (!name) return;
+      addZoneRound(dayIdx, name, slider.value, noteInput.value.trim());
+    };
+    form.querySelector('.zone-round-add').onclick = doAdd;
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+    box.appendChild(form);
+  }
+
+  const list = document.createElement('div');
+  list.className = 'zone-round-list';
+  if (!rounds.length) {
+    list.innerHTML = '<div class="empty" style="padding:16px">ما فيه جولات مسجلة لهذا اليوم</div>';
+  } else {
+    rounds.forEach(round => list.appendChild(buildZoneRoundCard(round, dayIdx, submitted)));
+  }
+
+  box.appendChild(list);
+  return box;
 }
 
 // ── HOME ──
@@ -453,7 +662,8 @@ function updateHomeUI() {
   document.getElementById('xpCurrent').textContent = xp;
   if (next) {
     document.getElementById('xpNext').textContent = next.xpNeeded;
-    document.getElementById('xpBarFill').style.width = Math.min(100, ((xp-current.xpNeeded)/(next.xpNeeded-current.xpNeeded))*100) + '%';
+    const levelSpan = Math.max(1, next.xpNeeded-current.xpNeeded);
+    document.getElementById('xpBarFill').style.width = Math.min(100, Math.max(0, ((xp-current.xpNeeded)/levelSpan)*100)) + '%';
   } else {
     document.getElementById('xpNext').textContent = 'MAX';
     document.getElementById('xpBarFill').style.width = '100%';
@@ -462,11 +672,13 @@ function updateHomeUI() {
   document.getElementById('statDay').textContent = (d+1)+' / '+state.totalDays;
   document.getElementById('statStreak').textContent = state.streak||0;
   document.getElementById('statPerfect').textContent = state.perfectDays||0;
+  const liveChecks = state.days[d]?.done ? null : ((state.todayChecks||{})[d]||{});
+  const liveExtra = liveChecks ? calcDayXP(liveChecks, getPillars(d)).extraXP : 0;
+  const followupPoints = getSavedFollowupPoints() + liveExtra;
+  document.getElementById('statFollowup').textContent = followupPoints;
+  document.getElementById('xpMultiplier').textContent = 'مضاعف المتابعة ×' + getFollowupMultiplier(followupPoints).toFixed(3);
 
-  const todayChecks = state.days[d]?.done
-    ? state.days[d].tasks
-    : ((state.todayChecks||{})[d]||{});
-  const rPct = calcReadiness(todayChecks);
+  const rPct = calcReadiness(getZoneRoundsForDay(d));
   const rColor  = rPct >= 90 ? 'var(--teal-light)' : rPct >= 70 ? 'var(--gold-light)' : 'var(--red-light)';
   const rStatus = rPct >= 90 ? '🟢 جاهز جداً'     : rPct >= 70 ? '🟡 يحتاج متابعة'   : '🔴 يحتاج تصعيد';
   document.getElementById('readinessPct').textContent   = rPct + '%';
@@ -474,6 +686,19 @@ function updateHomeUI() {
   document.getElementById('readinessStatus').textContent = rStatus;
   document.getElementById('readinessBarFill').style.width      = rPct + '%';
   document.getElementById('readinessBarFill').style.background = rColor;
+  renderHomeRounds(d);
+}
+
+function renderHomeRounds(dayIdx) {
+  const list = document.getElementById('homeRoundsList');
+  if (!list) return;
+  const rounds = getZoneRoundsForDay(dayIdx);
+  list.innerHTML = '';
+  if (!rounds.length) {
+    list.innerHTML = '<div class="empty">ما فيه جولات مسجلة اليوم</div>';
+    return;
+  }
+  rounds.forEach(round => list.appendChild(buildZoneRoundCard(round, dayIdx, true)));
 }
 
 // ── QUEST ──
@@ -491,6 +716,10 @@ function updateQuestUI() {
   document.getElementById('dayNextBtn').disabled = viewDayIdx >= state.totalDays-1;
 
   const pillars   = getPillars();
+  const zoneContainer = document.getElementById('zoneReadinessContainer');
+  zoneContainer.innerHTML = '';
+  zoneContainer.appendChild(buildZoneReadinessPanel(viewDayIdx, submitted));
+
   const container = document.getElementById('pillarsContainer');
   container.innerHTML = '';
 
@@ -534,9 +763,11 @@ function updateQuestUI() {
     container.appendChild(pillarDiv);
   });
 
-  const { xp, perfect } = calcDayXP(checks, pillars);
+  const { xp, extraXP, perfect } = calcDayXP(checks, pillars);
+  const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
+  const levelXP = Math.round(xp * multiplier);
   document.getElementById('bonusBanner').classList.toggle('unlocked', perfect);
-  document.getElementById('todayXP').textContent = xp + ' نقطة';
+  document.getElementById('todayXP').textContent = levelXP + ' نقطة مستوى' + (extraXP ? ' + ' + extraXP + ' متابعة' : '');
 
   const reopenBtn = document.getElementById('reopenBtn');
   reopenBtn.style.display = submitted ? 'block' : 'none';
@@ -559,12 +790,23 @@ function buildBinaryItem(task, isDone, pillar, submitted) {
   const chk = document.createElement('div');
   chk.className = 'task-check';
   chk.textContent = isDone ? '✓' : '';
-  if (!submitted) chk.onclick = () => toggleBinary(task.id, task.xp);
+  if (!submitted) chk.onclick = () => toggleBinary(task.id, task.xp, task._scope);
+
+  const copy = document.createElement('div');
+  copy.className = 'task-copy';
+  if (!submitted) copy.onclick = () => toggleBinary(task.id, task.xp, task._scope);
 
   const txt = document.createElement('span');
   txt.className = 'task-text';
   txt.textContent = task.text;
-  if (!submitted) txt.onclick = () => toggleBinary(task.id, task.xp);
+  copy.appendChild(txt);
+
+  if (task.note) {
+    const note = document.createElement('span');
+    note.className = 'task-note';
+    note.textContent = task.note;
+    copy.appendChild(note);
+  }
 
   const xpSpan = document.createElement('span');
   xpSpan.className = 'task-xp';
@@ -572,7 +814,7 @@ function buildBinaryItem(task, isDone, pillar, submitted) {
 
   const actions = buildActionBtns(task, pillar, item);
 
-  item.append(chk, txt, xpSpan, actions);
+  item.append(chk, copy, xpSpan, actions);
   return item;
 }
 
@@ -596,6 +838,13 @@ function buildPartialItem(task, val, pillar, submitted) {
   const actions = buildActionBtns(task, pillar, wrap);
   top.append(taskLbl, earned, actions);
   wrap.appendChild(top);
+
+  if (task.note) {
+    const note = document.createElement('div');
+    note.className = 'task-partial-note';
+    note.textContent = task.note;
+    wrap.appendChild(note);
+  }
 
   const pctRow = document.createElement('div');
   pctRow.className = 'pct-input-row';
@@ -621,7 +870,7 @@ function buildPartialItem(task, val, pillar, submitted) {
   inp.onchange = () => {
     let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
     inp.value = pct;
-    setPartial(task.id, task.xp, pct);
+    setPartial(task.id, task.xp, pct, task._scope);
   };
 
   pctRow.appendChild(inp);
@@ -651,17 +900,34 @@ function buildActionBtns(task, pillar, parentRef) {
 }
 
 // ── EDIT ROW ──
+function getGlobalCustomTask(pillarId, taskId) {
+  return (state.customTasks?.[pillarId]||[]).find(t => t.id === taskId);
+}
+
+function getDayCustomTask(dayIdx, pillarId, taskId) {
+  return (((state.dayCustomTasks||{})[dayIdx]||{})[pillarId]||[]).find(t => t.id === taskId);
+}
+
 function showEditRow(task, pillar, el) {
+  const isGlobalCustom = !!getGlobalCustomTask(pillar.id, task.id);
+  const isDayCustom = !!getDayCustomTask(viewDayIdx, pillar.id, task.id);
+  const canChooseScope = isGlobalCustom || isDayCustom;
+  const isCustomTask = isGlobalCustom || isDayCustom;
   const row = document.createElement('div');
   row.className = 'task-edit-row';
   row.innerHTML = `
     <div class="task-edit-inputs">
-      <input class="task-edit-text" value="${task.text}" placeholder="نص المهمة">
-      <input class="task-edit-xp" type="number" value="${task.xp}" min="1" max="100">
+      <input class="task-edit-text" value="${escapeHtml(task.text)}" placeholder="نص المهمة">
+      <input class="task-edit-xp" type="number" value="${escapeHtml(isCustomTask ? FOLLOWUP_TASK_POINTS : task.xp)}" min="1" max="100" ${isCustomTask ? 'disabled title="مهام المتابعة ثابتة على 5 نقاط"' : ''}>
     </div>
+    <textarea class="task-edit-note" placeholder="ملاحظات المتابعة: خطوات، عوائق، أو مرجع الإتمام">${escapeHtml(task.note || '')}</textarea>
     <div class="task-edit-partial-wrap">
       <input type="checkbox" id="editPartialChk" ${task.partial ? 'checked' : ''}>
       <label for="editPartialChk">نسبة الاتمام (يدوي)</label>
+    </div>
+    <div class="task-edit-partial-wrap">
+      <input type="checkbox" id="editAllDaysChk" ${!canChooseScope || isGlobalCustom ? 'checked' : ''} ${canChooseScope ? '' : 'disabled'}>
+      <label for="editAllDaysChk">${canChooseScope ? 'طبّق هذه المهمة على كل الأيام' : 'تعديل المهمة الأساسية يطبق على كل الأيام'}</label>
     </div>
     <div class="task-edit-actions">
       <button class="task-edit-save">احفظ</button>
@@ -671,31 +937,46 @@ function showEditRow(task, pillar, el) {
   el.replaceWith(row);
   row.querySelector('.task-edit-save').onclick = () => {
     const text = row.querySelector('.task-edit-text').value.trim();
-    const xp   = parseInt(row.querySelector('.task-edit-xp').value) || task.xp;
+    const xp   = isCustomTask ? FOLLOWUP_TASK_POINTS : (parseInt(row.querySelector('.task-edit-xp').value) || task.xp);
+    const note = row.querySelector('.task-edit-note').value.trim();
     const partial = row.querySelector('#editPartialChk').checked;
+    const allDays = row.querySelector('#editAllDaysChk').checked;
     if (!text) return;
-    saveTaskEdit(task, pillar, text, xp, partial);
+    saveTaskEdit(task, pillar, text, xp, partial, note, allDays);
   };
   row.querySelector('.task-edit-cancel').onclick = () => updateQuestUI();
   row.querySelector('.task-edit-text').focus();
 }
 
-function saveTaskEdit(task, pillar, text, xp, partial) {
-  const isCustom = (state.customTasks?.[pillar.id]||[]).find(t => t.id === task.id);
+function saveTaskEdit(task, pillar, text, xp, partial, note, allDays) {
+  const isCustom = getGlobalCustomTask(pillar.id, task.id);
+  const isDayCustom = getDayCustomTask(viewDayIdx, pillar.id, task.id);
   if (isCustom) {
-    state.customTasks[pillar.id] = state.customTasks[pillar.id].map(t => t.id===task.id ? {...t,text,xp,partial} : t);
+    state.customTasks[pillar.id] = state.customTasks[pillar.id].map(t => t.id===task.id ? {...t,text,xp,partial,note} : t);
+  } else if (isDayCustom) {
+    if (allDays) {
+      state.dayCustomTasks[viewDayIdx][pillar.id] = state.dayCustomTasks[viewDayIdx][pillar.id].filter(t => t.id !== task.id);
+      if (!state.customTasks) state.customTasks = {};
+      if (!state.customTasks[pillar.id]) state.customTasks[pillar.id] = [];
+      state.customTasks[pillar.id].push({...isDayCustom,text,xp,partial,note});
+    } else {
+      state.dayCustomTasks[viewDayIdx][pillar.id] = state.dayCustomTasks[viewDayIdx][pillar.id].map(t => t.id===task.id ? {...t,text,xp,partial,note} : t);
+    }
   } else {
     if (!state.taskOverrides) state.taskOverrides = {};
-    state.taskOverrides[task.id] = { text, xp, partial };
+    state.taskOverrides[task.id] = { text, xp, partial, note };
   }
   saveState(); updateQuestUI();
 }
 
 // ── DELETE ──
 function deleteTask(task, pillar) {
-  const isCustom = (state.customTasks?.[pillar.id]||[]).find(t => t.id === task.id);
+  const isCustom = getGlobalCustomTask(pillar.id, task.id);
+  const isDayCustom = getDayCustomTask(viewDayIdx, pillar.id, task.id);
   if (isCustom) {
     state.customTasks[pillar.id] = state.customTasks[pillar.id].filter(t => t.id !== task.id);
+  } else if (isDayCustom) {
+    state.dayCustomTasks[viewDayIdx][pillar.id] = state.dayCustomTasks[viewDayIdx][pillar.id].filter(t => t.id !== task.id);
   } else {
     if (!state.hiddenTasks) state.hiddenTasks = [];
     if (!state.hiddenTasks.includes(task.id)) state.hiddenTasks.push(task.id);
@@ -711,12 +992,17 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
   form.innerHTML = `
     <div class="add-task-row1">
       <input class="add-task-input" placeholder="نص المهمة الجديدة" type="text">
-      <input class="add-task-xp" type="number" value="15" min="1" max="100" title="XP">
+      <input class="add-task-xp" type="number" value="5" min="5" max="5" title="مهام المتابعة ثابتة على 5 نقاط" disabled>
     </div>
+    <textarea class="add-task-note" placeholder="ملاحظات المتابعة: خطوات، عوائق، أو مرجع الإتمام"></textarea>
     <div class="add-task-row2">
       <div class="add-task-partial-wrap">
         <input type="checkbox" id="addPartialChk">
         <label for="addPartialChk">نسبة الاتمام</label>
+      </div>
+      <div class="add-task-partial-wrap">
+        <input type="checkbox" id="addAllDaysChk">
+        <label for="addAllDaysChk">كل الأيام</label>
       </div>
       <button class="add-task-submit">ضيف</button>
       <button class="add-task-cancel-btn">إلغي</button>
@@ -726,12 +1012,22 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
   const inp = form.querySelector('.add-task-input');
   const doAdd = () => {
     const text = inp.value.trim();
-    const xp   = parseInt(form.querySelector('.add-task-xp').value)||15;
+    const xp   = FOLLOWUP_TASK_POINTS;
+    const note = form.querySelector('.add-task-note').value.trim();
     const partial = form.querySelector('#addPartialChk').checked;
+    const allDays = form.querySelector('#addAllDaysChk').checked;
     if (!text) return;
-    if (!state.customTasks) state.customTasks = {};
-    if (!state.customTasks[pillarId]) state.customTasks[pillarId] = [];
-    state.customTasks[pillarId].push({ id:'custom_'+Date.now(), text, xp, partial });
+    const task = { id:'custom_'+Date.now(), text, xp, partial, note };
+    if (allDays) {
+      if (!state.customTasks) state.customTasks = {};
+      if (!state.customTasks[pillarId]) state.customTasks[pillarId] = [];
+      state.customTasks[pillarId].push(task);
+    } else {
+      if (!state.dayCustomTasks) state.dayCustomTasks = {};
+      if (!state.dayCustomTasks[viewDayIdx]) state.dayCustomTasks[viewDayIdx] = {};
+      if (!state.dayCustomTasks[viewDayIdx][pillarId]) state.dayCustomTasks[viewDayIdx][pillarId] = [];
+      state.dayCustomTasks[viewDayIdx][pillarId].push(task);
+    }
     saveState(); updateQuestUI();
   };
   form.querySelector('.add-task-submit').onclick = doAdd;
@@ -741,23 +1037,26 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
 }
 
 // ── TOGGLE / SET ──
-function toggleBinary(taskId, xp) {
+function toggleBinary(taskId, xp, scope = 'base') {
   if (!state.todayChecks) state.todayChecks = {};
   if (!state.todayChecks[viewDayIdx]) state.todayChecks[viewDayIdx] = {};
   const cur = getCheckValue(state.todayChecks[viewDayIdx], taskId);
   const next = cur === 100 ? 0 : 100;
   state.todayChecks[viewDayIdx][taskId] = next;
   saveState();
-  if (next === 100) showXPToast('+'+xp+' XP');
+  if (next === 100) showXPToast(scope === 'base' ? '+'+xp+' XP' : '+'+xp+' متابعة');
   updateQuestUI();
 }
 
-function setPartial(taskId, xp, pct) {
+function setPartial(taskId, xp, pct, scope = 'base') {
   if (!state.todayChecks) state.todayChecks = {};
   if (!state.todayChecks[viewDayIdx]) state.todayChecks[viewDayIdx] = {};
   state.todayChecks[viewDayIdx][taskId] = pct;
   saveState();
-  if (pct > 0) showXPToast('+'+Math.round(xp*pct/100)+' XP');
+  if (pct > 0) {
+    const earned = Math.round(xp*pct/100);
+    showXPToast(scope === 'base' ? '+'+earned+' XP' : '+'+earned+' متابعة');
+  }
   updateQuestUI();
 }
 
@@ -765,18 +1064,26 @@ function setPartial(taskId, xp, pct) {
 function submitDay() {
   const checks  = (state.todayChecks||{})[viewDayIdx]||{};
   const pillars = getPillars();
-  const { xp, perfect } = calcDayXP(checks, pillars);
+  const { xp, activityXP, extraXP, perfect } = calcDayXP(checks, pillars);
+  const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
+  const levelXP = Math.round(xp * multiplier);
 
   const prevXP = state.totalXP;
   const { current: prevLvl } = getLevelData(prevXP);
 
-  state.totalXP = (state.totalXP||0) + xp;
+  state.totalXP = (state.totalXP||0) + levelXP;
 
   const coreTasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.core);
   const coreComplete = coreTasks.every(t => getCheckValue(checks, t.id) === 100);
 
-  state.days[viewDayIdx] = { done:true, tasks:{...checks}, xp, perfect, coreComplete };
+  const zoneRounds = getZoneRoundsForDay(viewDayIdx).map(round => ({ ...round }));
+  state.days[viewDayIdx] = {
+    done:true, tasks:{...checks}, zoneRounds,
+    xp: levelXP, baseXP: xp, activityXP: levelXP + extraXP, extraXP,
+    multiplier, multiplierXP: levelXP - xp, perfect, coreComplete
+  };
   delete state.todayChecks[viewDayIdx];
+  if (state.zoneRoundsDrafts) delete state.zoneRoundsDrafts[viewDayIdx];
   if (perfect) state.perfectDays = (state.perfectDays||0)+1;
 
   if (coreComplete) {
@@ -805,6 +1112,8 @@ function reopenDay() {
   // Restore checks so the user can re-edit
   if (!state.todayChecks) state.todayChecks = {};
   state.todayChecks[viewDayIdx] = { ...day.tasks };
+  if (!state.zoneRoundsDrafts) state.zoneRoundsDrafts = {};
+  state.zoneRoundsDrafts[viewDayIdx] = (day.zoneRounds||[]).map(round => ({ ...round }));
 
   // Recompute streak from scratch from submitted days
   delete state.days[viewDayIdx];
@@ -855,17 +1164,18 @@ function updateLogUI() {
   const entries = Object.entries(state.days).filter(([,d])=>d.done);
   if (!entries.length) { c.innerHTML='<div class="empty">ما فيه أيام منتهية بعد</div>'; return; }
   entries.sort(([a],[b])=>+a-+b);
-  const maxXP = BASE_PILLARS.flatMap(p => p.tasks).reduce((s, t) => s + t.xp, 0) + PERFECT_BONUS;
+  const maxXP = getBaseDayMaxXP();
   c.innerHTML = entries.map(([idx,day])=>{
     const pct = Math.min(100,(day.xp/maxXP)*100);
     const col = day.perfect?'var(--gold)':(pct>60?'var(--teal)':'var(--text-dim)');
+    const extra = day.extraXP || Math.max(0, (day.activityXP||day.xp) - day.xp);
     return `<div class="log-item" onclick="jumpToDay(${+idx})">
       <div class="log-day">${+idx+1}</div>
       <div class="log-bar-wrap">
         <div class="log-label">${day.perfect?'⭐ يوم مثالي':'يوم عادي'}</div>
         <div class="log-bar-track"><div class="log-bar-fill" style="width:${pct}%;background:${col}"></div></div>
       </div>
-      <div class="log-xp">${day.xp} XP</div>
+      <div class="log-xp">${day.xp} XP${extra ? ' +' + extra + ' متابعة' : ''}</div>
     </div>`;
   }).join('');
 }
