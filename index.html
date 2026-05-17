@@ -530,6 +530,7 @@ function loadState() {
   if (s) {
     try {
       state = JSON.parse(s);
+      normalizeLoadedState();
       return true;
     } catch (err) {
       console.warn('تعذر قراءة بيانات الموسم المحفوظة:', err);
@@ -543,7 +544,7 @@ function migratePhantomXP() {
   if (!state.days) return;
   let totalDelta = 0;
   Object.entries(state.days).forEach(([, day]) => {
-    if (!day.done) return;
+    if (!day || !day.done) return;
     const savedTasks = day.tasks || {};
     // Use pillarsSnapshot if available, else fall back to BASE_PILLARS
     const snapshot = day.pillarsSnapshot || BASE_PILLARS;
@@ -605,6 +606,17 @@ function ensureArray(parent, key) {
   if (!Array.isArray(parent[key])) parent[key] = [];
   return parent[key];
 }
+function normalizeLoadedState() {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) state = {};
+  state.totalDays = validTotalDays(state.totalDays) || 12;
+  state.totalXP = Number.isFinite(+state.totalXP) ? +state.totalXP : 0;
+  state.streak = Number.isFinite(+state.streak) ? +state.streak : 0;
+  state.perfectDays = Number.isFinite(+state.perfectDays) ? +state.perfectDays : 0;
+  ['days', 'todayChecks', 'zoneRoundsDrafts', 'evidenceDrafts', 'customTasks', 'dayCustomTasks', 'taskOverrides'].forEach(key => {
+    if (!state[key] || typeof state[key] !== 'object' || Array.isArray(state[key])) state[key] = {};
+  });
+  if (!Array.isArray(state.hiddenTasks)) state.hiddenTasks = [];
+}
 function cloneItems(items) {
   return (items || []).map(item => ({ ...item }));
 }
@@ -643,10 +655,10 @@ function deleteDraftItem(draftKey, dayIdx, itemId) {
   return true;
 }
 function replaceTask(tasks, taskId, patch) {
-  return tasks.map(task => task.id === taskId ? { ...task, ...patch } : task);
+  return (Array.isArray(tasks) ? tasks : []).map(task => task.id === taskId ? { ...task, ...patch } : task);
 }
 function removeTask(tasks, taskId) {
-  return tasks.filter(task => task.id !== taskId);
+  return (Array.isArray(tasks) ? tasks : []).filter(task => task.id !== taskId);
 }
 
 function escapeHtml(value) {
@@ -663,7 +675,7 @@ function initState(startDate, totalDays) {
 
 // checks store: number 0-100 for partial tasks, boolean (true=100/false=0) for binary
 function getCheckValue(checks, taskId) {
-  const v = checks[taskId];
+  const v = (checks || {})[taskId];
   if (v === undefined || v === false || v === null) return 0;
   if (v === true) return 100;
   return +v;
@@ -674,8 +686,10 @@ function getPillars(dayIdx = viewDayIdx) {
     const tasks = p.tasks
       .filter(t => !(state.hiddenTasks||[]).includes(t.id))
       .map(t => { const ov = (state.taskOverrides||{})[t.id]; return ov ? {...t,...ov,_scope:'base'} : {...t,_scope:'base'}; });
-    const globalCustom = ((state.customTasks||{})[p.id] || []).map(t => ({...t,xp:FOLLOWUP_TASK_POINTS,_scope:'all'}));
-    const dayCustom = (((state.dayCustomTasks||{})[dayIdx]||{})[p.id] || []).map(t => ({...t,xp:FOLLOWUP_TASK_POINTS,_scope:'day'}));
+    const customTasks = (state.customTasks||{})[p.id];
+    const dayTasks = ((state.dayCustomTasks||{})[dayIdx]||{})[p.id];
+    const globalCustom = (Array.isArray(customTasks) ? customTasks : []).map(t => ({...t,xp:FOLLOWUP_TASK_POINTS,_scope:'all'}));
+    const dayCustom = (Array.isArray(dayTasks) ? dayTasks : []).map(t => ({...t,xp:FOLLOWUP_TASK_POINTS,_scope:'day'}));
     return { ...p, tasks: [...tasks, ...globalCustom, ...dayCustom] };
   });
 }
@@ -719,12 +733,23 @@ function getLevelData(xp) {
 
 function getSavedFollowupPoints() {
   return Object.values(state.days||{}).reduce((sum, day) => {
+    if (!day) return sum;
     return sum + (day.extraXP || Math.max(0, (day.activityXP||day.xp||0) - (day.xp||0)));
   }, 0);
 }
 
 function getFollowupMultiplier(points) {
   return 1 + Math.min(FOLLOWUP_MULTIPLIER_CAP, Math.max(0, points) * FOLLOWUP_MULTIPLIER_PER_POINT);
+}
+
+function recomputeCurrentStreak() {
+  let streak = 0;
+  const todayIdx = getTodayIndex();
+  for (let i = todayIdx; i >= 0; i--) {
+    if (state.days[i]?.coreComplete) streak++;
+    else break;
+  }
+  state.streak = streak;
 }
 
 // ── XP for a day given checks ──
@@ -1125,9 +1150,8 @@ function buildBinaryItem(task, isDone, pillar, submitted) {
 
   const xpSpan = el('span', 'task-xp', '+'+task.xp);
 
-  const actions = buildActionBtns(task, pillar, item);
-
-  item.append(chk, copy, xpSpan, actions);
+  item.append(chk, copy, xpSpan);
+  if (!submitted) item.appendChild(buildActionBtns(task, pillar, item));
   return item;
 }
 
@@ -1147,8 +1171,8 @@ function buildPartialItem(task, val, pillar, submitted) {
   };
   updateEarned(val);
 
-  const actions = buildActionBtns(task, pillar, wrap);
-  top.append(taskLbl, earned, actions);
+  top.append(taskLbl, earned);
+  if (!submitted) top.appendChild(buildActionBtns(task, pillar, wrap));
   wrap.appendChild(top);
 
   if (task.note) {
@@ -1206,11 +1230,13 @@ function buildActionBtns(task, pillar, parentRef) {
 
 // ── EDIT ROW ──
 function getGlobalCustomTask(pillarId, taskId) {
-  return (state.customTasks?.[pillarId]||[]).find(t => t.id === taskId);
+  const tasks = state.customTasks?.[pillarId];
+  return (Array.isArray(tasks) ? tasks : []).find(t => t.id === taskId);
 }
 
 function getDayCustomTask(dayIdx, pillarId, taskId) {
-  return (((state.dayCustomTasks||{})[dayIdx]||{})[pillarId]||[]).find(t => t.id === taskId);
+  const tasks = (((state.dayCustomTasks||{})[dayIdx]||{})[pillarId]);
+  return (Array.isArray(tasks) ? tasks : []).find(t => t.id === taskId);
 }
 
 function showEditRow(task, pillar, targetEl) {
@@ -1294,7 +1320,9 @@ function deleteTask(task, pillar) {
   }
   // Remove the task's check value from all unsaved day drafts
   if (state.todayChecks) {
-    Object.values(state.todayChecks).forEach(dayChecks => { delete dayChecks[task.id]; });
+    Object.values(state.todayChecks).forEach(dayChecks => {
+      if (dayChecks && typeof dayChecks === 'object') delete dayChecks[task.id];
+    });
   }
   saveState(); updateQuestUI();
 }
@@ -1411,12 +1439,8 @@ function submitDay() {
   if (state.evidenceDrafts) delete state.evidenceDrafts[viewDayIdx];
   if (perfect) state.perfectDays = (state.perfectDays||0)+1;
 
-  if (coreComplete) {
-    const prevCore = viewDayIdx > 0 ? !!(state.days[viewDayIdx-1]?.coreComplete) : false;
-    state.streak = (viewDayIdx === 0 || prevCore) ? (state.streak||0)+1 : 1;
-  } else {
-    state.streak = 0;
-  }
+  // Recompute from submitted days so backfilled/reopened days keep the current streak accurate.
+  recomputeCurrentStreak();
 
   saveState();
   const { current: newLvl } = getLevelData(state.totalXP);
@@ -1443,13 +1467,7 @@ function reopenDay() {
 
   // Recompute streak from scratch from submitted days
   delete state.days[viewDayIdx];
-  let streak = 0;
-  const todayIdx = getTodayIndex();
-  for (let i = todayIdx; i >= 0; i--) {
-    if (state.days[i]?.coreComplete) streak++;
-    else break;
-  }
-  state.streak = streak;
+  recomputeCurrentStreak();
 
   saveState();
   updateAllUI();
@@ -1464,7 +1482,7 @@ function navigateDay(d) {
 
 function jumpToDay(idx) {
   viewDayIdx = idx;
-  showView('quest');
+  showView('quest', true);
 }
 
 // ── SETTINGS ──
@@ -1490,7 +1508,7 @@ function saveSettings() {
 function buildMemoryView() {
   const mc = $('memoryContainer');
   if (!mc) return;
-  const entries = Object.entries(state.days).filter(([,d]) => d.done);
+  const entries = Object.entries(state.days).filter(([,d]) => d && d.done);
   if (!entries.length) { setEmpty(mc, 'ما فيه ملاحظات بعد'); return; }
   entries.sort(([a],[b]) => +a - +b);
 
@@ -1509,11 +1527,15 @@ function buildMemoryView() {
       items.push({ source: 'دليل', label: e.category, note: e.text });
     });
 
-    const collectTaskNotes = taskGroups => Object.values(taskGroups||{}).forEach(tasks => tasks.forEach(t => {
+    const collectTaskNotes = tasks => (Array.isArray(tasks) ? tasks : []).forEach(t => {
       if (t.note && t.note.trim() && day.tasks?.[t.id] > 0) items.push({ source: 'مهمة', label: t.text, note: t.note.trim() });
-    }));
-    collectTaskNotes(state.dayCustomTasks?.[dayNum]);
-    collectTaskNotes(state.customTasks);
+    });
+    if (day.pillarsSnapshot) {
+      day.pillarsSnapshot.forEach(p => collectTaskNotes(p.tasks));
+    } else {
+      Object.values(state.dayCustomTasks?.[dayNum]||{}).forEach(collectTaskNotes);
+      Object.values(state.customTasks||{}).forEach(collectTaskNotes);
+    }
 
     if (!items.length) return;
     totalNotes += items.length;
@@ -1523,12 +1545,15 @@ function buildMemoryView() {
     html += `<div class="memory-day-header" onclick="jumpToDay(${dayNum})">اليوم ${dayNum+1} · ${date}</div>`;
     items.forEach(item => {
       const cls = item.source === 'جولة' ? 'memory-source-round' : item.source === 'دليل' ? 'memory-source-evidence' : 'memory-source-task';
+      const safeSource = escapeHtml(item.source);
+      const safeLabel = escapeHtml(item.label);
+      const safeNote = escapeHtml(item.note);
       html += `<div class="memory-item" onclick="jumpToDay(${dayNum})">
         <div class="memory-item-top">
-          <span class="memory-source-badge ${cls}">${item.source}</span>
-          <span class="memory-item-label">${item.label}</span>
+          <span class="memory-source-badge ${cls}">${safeSource}</span>
+          <span class="memory-item-label">${safeLabel}</span>
         </div>
-        <div class="memory-item-note">${item.note}</div>
+        <div class="memory-item-note">${safeNote}</div>
       </div>`;
     });
     html += `</div>`;
@@ -1544,7 +1569,7 @@ function updateLogUI() {
   if (eDate) eDate.value = state.startDate || '';
   if (eDays) eDays.value = state.totalDays || '';
   const c = $('logContainer');
-  const entries = Object.entries(state.days).filter(([,d])=>d.done);
+  const entries = Object.entries(state.days).filter(([,d])=>d && d.done);
   if (!entries.length) { setEmpty(c, 'ما فيه أيام منتهية بعد'); return; }
   entries.sort(([a],[b])=>+a-+b);
   const maxXP = getBaseDayMaxXP();
@@ -1589,13 +1614,13 @@ function showLevelUp(ld) {
 function closeLevelup() { $('levelupOverlay').classList.remove('show'); }
 
 // ── VIEWS ──
-function showView(name) {
+function showView(name, preserveDay = false) {
   clearActive('.view');
   clearActive('.nav-btn');
   $('view-'+name).classList.add('active');
   $('nav-'+name).classList.add('active');
   if (name==='home')  updateHomeUI();
-  if (name==='quest') { viewDayIdx=getTodayIndex(); updateQuestUI(); }
+  if (name==='quest') { if (!preserveDay) viewDayIdx=getTodayIndex(); updateQuestUI(); }
   if (name==='log')   updateLogUI();
 }
 
