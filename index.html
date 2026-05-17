@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مشرف الزون — عبدالله الحازمي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel+Decorative:wght@700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080A14;
+    --bg2: #0E1020;
+    --panel: #121528;
+    --border: #2a2d4a;
+    --gold: #C8972A;
+    --gold-light: #E8B84B;
+    --gold-dim: #7a5a15;
+    --cream: #F0E6C8;
+    --cream-dim: #9a8f74;
+    --teal: #2a7a6a;
+    --teal-light: #3aaa8a;
+    --red: #8a2020;
+    --text: #D8CCB0;
+    --text-dim: #6a6050;
+    --xp-color: #C8972A;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Amiri', serif;
+    font-size: 18px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Islamic geometric background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='%23C8972A' stroke-width='0.3' opacity='0.12'%3E%3Cpolygon points='40,5 75,27.5 75,52.5 40,75 5,52.5 5,27.5'/%3E%3Cpolygon points='40,15 65,30 65,50 40,65 15,50 15,30'/%3E%3Cline x1='40' y1='5' x2='40' y2='15'/%3E%3Cline x1='75' y1='27.5' x2='65' y2='30'/%3E%3Cline x1='75' y1='52.5' x2='65' y2='50'/%3E%3Cline x1='40' y1='75' x2='40' y2='65'/%3E%3Cline x1='5' y1='52.5' x2='15' y2='50'/%3E%3Cline x1='5' y1='27.5' x2='15' y2='30'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 16px; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── NAV ── */
+  .nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px;
+  }
+  .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Amiri', serif;
+    font-size: 15px;
+    padding: 8px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-btn.active {
+    background: var(--gold-dim);
+    color: var(--gold-light);
+  }
+  .nav-btn:hover:not(.active) { color: var(--text); }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+
+  /* ── CHARACTER HEADER ── */
+  .char-header { text-align: center; padding: 24px 20px; }
+  .char-name {
+    font-family: 'Scheherazade New', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .char-title {
+    font-size: 15px;
+    color: var(--cream-dim);
+    margin-bottom: 20px;
+    font-style: italic;
+    transition: all 0.5s;
+  }
+  .char-avatar {
+    width: 90px; height: 90px;
+    border: 2px solid var(--gold-dim);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    background: var(--bg2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    position: relative;
+    box-shadow: 0 0 24px rgba(200,151,42,0.15);
+  }
+  .char-avatar::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid rgba(200,151,42,0.2);
+  }
+
+  /* ── LEVEL BADGE ── */
+  .level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(200,151,42,0.1);
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 14px;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .level-num {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 13px;
+    color: var(--gold-light);
+  }
+
+  /* ── XP BAR ── */
+  .xp-section { margin-top: 8px; }
+  .xp-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .xp-bar-track {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold-light));
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .xp-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 20px; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+    animation: shimmer-bar 2s infinite;
+  }
+  @keyframes shimmer-bar { 0%,100%{opacity:0} 50%{opacity:1} }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 0;
+  }
+  .stat-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 20px;
+    color: var(--gold-light);
+    display: block;
+  }
+  .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ── QUEST VIEW ── */
+  .quest-date {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .quest-title {
+    font-family: 'Scheherazade New', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    margin-bottom: 16px;
+  }
+  .pillar { margin-bottom: 16px; }
+  .pillar-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .pillar-icon { font-size: 18px; }
+  .pillar-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cream);
+    flex: 1;
+  }
+  .pillar-xp {
+    font-size: 12px;
+    color: var(--gold-dim);
+    background: rgba(200,151,42,0.08);
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: 2px 10px;
+  }
+  .pillar-tasks { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── TASK ITEM ── */
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    user-select: none;
+  }
+  .task-item:hover { border-color: var(--gold-dim); }
+  .task-item.done {
+    border-color: var(--teal);
+    background: rgba(42,122,106,0.08);
+  }
+  .task-item.done .task-text { color: var(--teal-light); }
+  .task-check {
+    width: 22px; height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+    font-size: 13px;
+  }
+  .task-item.done .task-check {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: white;
+    box-shadow: 0 0 8px rgba(42,170,138,0.4);
+  }
+  .task-text { flex: 1; font-size: 16px; }
+  .task-xp { font-size: 12px; color: var(--text-dim); }
+
+  /* ── BONUS BANNER ── */
+  .bonus-banner {
+    background: linear-gradient(135deg, rgba(200,151,42,0.1), rgba(200,151,42,0.05));
+    border: 1px solid var(--gold-dim);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: center;
+    margin-bottom: 16px;
+    opacity: 0.5;
+    transition: all 0.4s;
+  }
+  .bonus-banner.unlocked { opacity: 1; box-shadow: 0 0 20px rgba(200,151,42,0.2); }
+  .bonus-banner-text { font-size: 15px; color: var(--gold); }
+
+  /* ── SUBMIT BUTTON ── */
+  .submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold-dim), #9a7020);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius);
+    color: var(--cream);
+    font-family: 'Amiri', serif;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+  }
+  .submit-btn:hover { background: linear-gradient(135deg, #9a7020, var(--gold-dim)); box-shadow: 0 4px 20px rgba(200,151,42,0.3); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .submit-btn.done-today {
+    background: linear-gradient(135deg, rgba(42,122,106,0.3), rgba(42,122,106,0.2));
+    border-color: var(--teal);
+    color: var(--teal-light);
+  }
+
+  /* ── SEASON LOG ── */
+  .log-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .log-day {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 13px;
+    color: var(--gold-dim);
+    width: 32px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .log-bar-wrap { flex: 1; }
+  .log-label { font-size: 14px; color: var(--text-dim); margin-bottom: 4px; }
+  .log-bar-track { background: var(--bg); border-radius: 3px; height: 6px; overflow: hidden; }
+  .log-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .log-xp { font-size: 14px; color: var(--gold); text-align: left; flex-shrink: 0; }
+  .log-star { font-size: 16px; }
+
+  /* ── LEVEL UP OVERLAY ── */
+  .levelup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .levelup-overlay.show { opacity: 1; pointer-events: all; }
+  .levelup-card {
+    text-align: center;
+    padding: 40px 32px;
+    background: var(--panel);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    box-shadow: 0 0 60px rgba(200,151,42,0.4);
+    max-width: 320px;
+    animation: levelup-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes levelup-pop {
+    from { transform: scale(0.7) translateY(20px); opacity: 0; }
+    to   { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .levelup-emoji { font-size: 52px; margin-bottom: 12px; display: block; }
+  .levelup-label { font-size: 14px; color: var(--text-dim); margin-bottom: 6px; }
+  .levelup-title {
+    font-family: 'Scheherazade New', serif;
+    font-size: 26px;
+    color: var(--gold-light);
+    margin-bottom: 20px;
+  }
+  .levelup-close {
+    background: var(--gold-dim);
+    border: none; border-radius: 6px;
+    color: var(--cream); font-family: 'Amiri', serif;
+    font-size: 16px; padding: 10px 24px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .levelup-close:hover { background: var(--gold); }
+
+  /* ── PARTICLES ── */
+  .particle {
+    position: fixed;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    pointer-events: none;
+    z-index: 1000;
+    animation: particle-fly 1.2s ease-out forwards;
+  }
+  @keyframes particle-fly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  /* ── SETUP SCREEN ── */
+  .setup-screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .setup-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+  }
+  .setup-title {
+    font-family: 'Scheherazade New', serif;
+    font-size: 26px;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+  }
+  .setup-sub { font-size: 15px; color: var(--text-dim); margin-bottom: 28px; }
+  .setup-label { font-size: 15px; color: var(--cream-dim); margin-bottom: 8px; text-align: right; }
+  .setup-input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'Amiri', serif;
+    font-size: 16px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: right;
+  }
+  .setup-input:focus { border-color: var(--gold-dim); }
+  .setup-start {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold-dim), #9a7020);
+    border: 1px solid var(--gold);
+    border-radius: var(--radius);
+    color: var(--cream);
+    font-family: 'Amiri', serif;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .setup-start:hover { box-shadow: 0 4px 20px rgba(200,151,42,0.3); }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; color: var(--text-dim); padding: 32px; font-size: 15px; }
+
+  /* ── XP TOAST ── */
+  .xp-toast {
+    position: fixed;
+    bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: rgba(200,151,42,0.15);
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: 8px 20px;
+    color: var(--gold-light);
+    font-size: 16px;
+    font-weight: 700;
+    pointer-events: none;
+    z-index: 200;
+    animation: toast-rise 1.5s ease-out forwards;
+  }
+  @keyframes toast-rise {
+    0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
+  }
+
+  .section-title {
+    font-family: 'Scheherazade New', serif;
+    font-size: 18px;
+    color: var(--gold-dim);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 16px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-card">
+    <div style="font-size:48px;margin-bottom:12px">🕌</div>
+    <div class="setup-title">مشرف الزون</div>
+    <div class="setup-sub">بسم الله — ابدأ رحلة الحج</div>
+    <div class="setup-label">تاريخ أول يوم عمل</div>
+    <input type="date" class="setup-input" id="startDateInput">
+    <div class="setup-label">عدد أيام العمل</div>
+    <input type="number" class="setup-input" id="totalDaysInput" value="12" min="1" max="30">
+    <button class="setup-start" onclick="startSession()">ابدأ المهمة ←</button>
+  </div>
+</div>
+
+<!-- LEVEL UP OVERLAY -->
+<div class="levelup-overlay" id="levelupOverlay">
+  <div class="levelup-card">
+    <span class="levelup-emoji" id="levelupEmoji">⭐</span>
+    <div class="levelup-label">ترقيت إلى</div>
+    <div class="levelup-title" id="levelupTitle">—</div>
+    <button class="levelup-close" onclick="closeLevelup()">متابعة</button>
+  </div>
+</div>
+
+<div class="app">
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showView('home')" id="nav-home">🛡 البطل</button>
+    <button class="nav-btn" onclick="showView('quest')" id="nav-quest">⚔️ مهمة اليوم</button>
+    <button class="nav-btn" onclick="showView('log')" id="nav-log">📜 السجل</button>
+  </nav>
+
+  <!-- ══ HOME VIEW ══ -->
+  <div class="view active" id="view-home">
+    <div class="panel char-header">
+      <div class="char-avatar">🧔</div>
+      <div class="char-name">عبدالله الحازمي</div>
+      <div class="char-title" id="charTitle">—</div>
+      <div class="level-badge">
+        <span>المستوى</span>
+        <span class="level-num" id="levelNum">1</span>
+      </div>
+      <div class="xp-section">
+        <div class="xp-label">
+          <span id="xpCurrent">0</span>
+          <span>نقاط الخبرة</span>
+          <span id="xpNext">—</span>
+        </div>
+        <div class="xp-bar-track">
+          <div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <span class="stat-value" id="statDay">—</span>
+        <div class="stat-label">اليوم</div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-value" id="statStreak">0</span>
+        <div class="stat-label">🔥 تسلسل</div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-value" id="statPerfect">0</span>
+        <div class="stat-label">⭐ مثالي</div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="submit-btn" onclick="showView('quest')" style="background:linear-gradient(135deg,#1a3a2a,#0d2018);border-color:var(--teal);color:var(--teal-light)">
+        ⚔️ انتقل إلى مهمة اليوم
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ QUEST VIEW ══ -->
+  <div class="view" id="view-quest">
+    <div class="panel" id="questPanel">
+      <div class="quest-date" id="questDate">—</div>
+      <div class="quest-title" id="questTitle">مهمة اليوم</div>
+      <div id="pillarsContainer"></div>
+      <hr class="divider">
+      <div class="bonus-banner" id="bonusBanner">
+        <div class="bonus-banner-text">⭐ إتمام جميع المهام: +50 نقطة خبرة</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:15px;color:var(--text-dim)">XP اليوم:</span>
+        <span style="font-size:18px;color:var(--gold-light);font-weight:700" id="todayXP">0</span>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitDay()">إنهاء اليوم ✓</button>
+    </div>
+  </div>
+
+  <!-- ══ LOG VIEW ══ -->
+  <div class="view" id="view-log">
+    <div class="panel">
+      <div class="section-title">سجل الموسم</div>
+      <div id="logContainer"><div class="empty">لا يوجد أيام مكتملة بعد</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── GAME DATA ──
+const PILLARS = [
+  {
+    id: 'attendance',
+    icon: '🕌',
+    name: 'الحضور والانضباط',
+    tasks: [
+      { id: 'checkin', text: 'الحضور في الوقت المحدد', xp: 20 },
+      { id: 'briefing', text: 'حضور الإحاطة الصباحية', xp: 15 },
+    ]
+  },
+  {
+    id: 'rounds',
+    icon: '🔍',
+    name: 'الجولات الميدانية',
+    tasks: [
+      { id: 'round1', text: 'الجولة الميدانية الأولى', xp: 20 },
+      { id: 'round2', text: 'الجولة الميدانية الثانية', xp: 20 },
+      { id: 'round3', text: 'الجولة الميدانية الثالثة', xp: 20 },
+    ]
+  },
+  {
+    id: 'reports',
+    icon: '📋',
+    name: 'التقارير',
+    tasks: [
+      { id: 'report', text: 'تقديم التقرير اليومي', xp: 20 },
+      { id: 'incidents', text: 'تسجيل الحوادث / تأكيد لا يوجد', xp: 15 },
+    ]
+  },
+  {
+    id: 'coord',
+    icon: '🤝',
+    name: 'التنسيق',
+    tasks: [
+      { id: 'zones', text: 'التنسيق مع الزونات المجاورة', xp: 15 },
+      { id: 'issues', text: 'متابعة طلب أو حل مشكلة', xp: 15 },
+    ]
+  }
+];
+
+const PERFECT_BONUS = 50;
+
+const LEVELS = [
+  { level: 1,  title: 'متطوع مبتدئ',    emoji: '🌱', xpNeeded: 0    },
+  { level: 2,  title: 'عامل مجتهد',      emoji: '⚒️', xpNeeded: 200  },
+  { level: 3,  title: 'مشرف ميداني',    emoji: '🔍', xpNeeded: 450  },
+  { level: 4,  title: 'قائد الجولات',   emoji: '🗺️', xpNeeded: 750  },
+  { level: 5,  title: 'قائد الزون',     emoji: '🛡', xpNeeded: 1100 },
+  { level: 6,  title: 'المشرف الموثوق', emoji: '⚔️', xpNeeded: 1500 },
+  { level: 7,  title: 'المشرف المتميز', emoji: '🏆', xpNeeded: 1900 },
+  { level: 8,  title: 'مشرف النخبة',   emoji: '👑', xpNeeded: 2300 },
+  { level: 9,  title: 'حارس الزون',     emoji: '🌟', xpNeeded: 2700 },
+  { level: 10, title: 'أفضل موظف ⭐',   emoji: '🕌', xpNeeded: 3000 },
+];
+
+// ── STATE ──
+let state = {};
+
+function loadState() {
+  const saved = localStorage.getItem('hajj_rpg_v1');
+  if (saved) {
+    state = JSON.parse(saved);
+    return true;
+  }
+  return false;
+}
+
+function saveState() {
+  localStorage.setItem('hajj_rpg_v1', JSON.stringify(state));
+}
+
+function initState(startDate, totalDays) {
+  state = {
+    startDate,
+    totalDays: parseInt(totalDays),
+    totalXP: 0,
+    streak: 0,
+    perfectDays: 0,
+    days: {},       // dayIndex -> { done: bool, tasks: {taskId: bool}, xp: number, perfect: bool }
+    todayChecks: {} // taskId -> bool (current day, not yet submitted)
+  };
+  saveState();
+}
+
+// ── CURRENT DAY INDEX ──
+function getDayIndex() {
+  if (!state.startDate) return 0;
+  const start = new Date(state.startDate);
+  const today = new Date();
+  start.setHours(0,0,0,0); today.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000);
+  return Math.max(0, Math.min(diff, state.totalDays - 1));
+}
+
+function isTodaySubmitted() {
+  const idx = getDayIndex();
+  return !!(state.days[idx] && state.days[idx].done);
+}
+
+// ── LEVEL CALC ──
+function getLevelData(xp) {
+  let current = LEVELS[0];
+  let next = LEVELS[1];
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (xp >= LEVELS[i].xpNeeded) {
+      current = LEVELS[i];
+      next = LEVELS[i + 1] || null;
+      break;
+    }
+  }
+  return { current, next };
+}
+
+// ── UI UPDATE ──
+function updateHomeUI() {
+  const xp = state.totalXP || 0;
+  const { current, next } = getLevelData(xp);
+  const dayIdx = getDayIndex();
+
+  document.getElementById('charTitle').textContent = current.title;
+  document.getElementById('levelNum').textContent = current.level;
+  document.getElementById('xpCurrent').textContent = xp;
+
+  if (next) {
+    document.getElementById('xpNext').textContent = next.xpNeeded;
+    const pct = ((xp - current.xpNeeded) / (next.xpNeeded - current.xpNeeded)) * 100;
+    document.getElementById('xpBarFill').style.width = Math.min(100, pct) + '%';
+  } else {
+    document.getElementById('xpNext').textContent = 'MAX';
+    document.getElementById('xpBarFill').style.width = '100%';
+  }
+
+  document.getElementById('statDay').textContent = (dayIdx + 1) + ' / ' + state.totalDays;
+  document.getElementById('statStreak').textContent = state.streak || 0;
+  document.getElementById('statPerfect').textContent = state.perfectDays || 0;
+}
+
+function updateQuestUI() {
+  const dayIdx = getDayIndex();
+  const submitted = isTodaySubmitted();
+  const checks = submitted ? (state.days[dayIdx]?.tasks || {}) : (state.todayChecks || {});
+
+  // Date
+  const today = new Date();
+  document.getElementById('questDate').textContent =
+    today.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('questTitle').textContent = `مهمة اليوم ${dayIdx + 1}`;
+
+  // Render pillars
+  const container = document.getElementById('pillarsContainer');
+  container.innerHTML = '';
+
+  let totalXP = 0;
+  let totalTasks = 0;
+  let doneTasks = 0;
+
+  PILLARS.forEach(pillar => {
+    const pillarDiv = document.createElement('div');
+    pillarDiv.className = 'pillar';
+
+    let pillarXP = 0;
+    pillar.tasks.forEach(t => {
+      if (checks[t.id]) pillarXP += t.xp;
+    });
+
+    const header = document.createElement('div');
+    header.className = 'pillar-header';
+    header.innerHTML = `
+      <span class="pillar-icon">${pillar.icon}</span>
+      <span class="pillar-name">${pillar.name}</span>
+      <span class="pillar-xp">${pillarXP} XP</span>
+    `;
+
+    const tasksDiv = document.createElement('div');
+    tasksDiv.className = 'pillar-tasks';
+
+    pillar.tasks.forEach(task => {
+      totalTasks++;
+      const isDone = !!checks[task.id];
+      if (isDone) doneTasks++;
+      totalXP += isDone ? task.xp : 0;
+
+      const item = document.createElement('div');
+      item.className = 'task-item' + (isDone ? ' done' : '');
+      item.innerHTML = `
+        <div class="task-check">${isDone ? '✓' : ''}</div>
+        <span class="task-text">${task.text}</span>
+        <span class="task-xp">+${task.xp}</span>
+      `;
+      if (!submitted) {
+        item.onclick = () => toggleTask(task.id, task.xp, pillar);
+      }
+      tasksDiv.appendChild(item);
+    });
+
+    pillarDiv.appendChild(header);
+    pillarDiv.appendChild(tasksDiv);
+    container.appendChild(pillarDiv);
+  });
+
+  const isPerfect = doneTasks === totalTasks;
+  if (isPerfect && !submitted) totalXP += PERFECT_BONUS;
+  if (isPerfect && submitted && state.days[dayIdx]?.perfect) totalXP += PERFECT_BONUS;
+
+  const bonusBanner = document.getElementById('bonusBanner');
+  bonusBanner.classList.toggle('unlocked', isPerfect);
+
+  document.getElementById('todayXP').textContent = totalXP + ' نقطة';
+
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitted) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '✓ اليوم مكتمل';
+    submitBtn.className = 'submit-btn done-today';
+  } else {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'إنهاء اليوم ✓';
+    submitBtn.className = 'submit-btn';
+  }
+}
+
+function updateLogUI() {
+  const container = document.getElementById('logContainer');
+  const entries = Object.entries(state.days).filter(([,d]) => d.done);
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="empty">لا يوجد أيام مكتملة بعد</div>';
+    return;
+  }
+  entries.sort(([a],[b]) => a - b);
+  const maxXP = 160 + PERFECT_BONUS; // approx max per day
+  container.innerHTML = entries.map(([idx, day]) => {
+    const pct = Math.min(100, (day.xp / maxXP) * 100);
+    const color = day.perfect ? 'var(--gold)' : (pct > 60 ? 'var(--teal)' : 'var(--text-dim)');
+    return `
+      <div class="log-item">
+        <div class="log-day">${parseInt(idx)+1}</div>
+        <div class="log-bar-wrap">
+          <div class="log-label">${day.perfect ? '⭐ يوم مثالي' : 'يوم عادي'}</div>
+          <div class="log-bar-track">
+            <div class="log-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>
+        <div class="log-xp">${day.xp} XP</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateAllUI() {
+  updateHomeUI();
+  updateQuestUI();
+  updateLogUI();
+}
+
+// ── TOGGLE TASK ──
+function toggleTask(taskId, xp, pillar) {
+  if (!state.todayChecks) state.todayChecks = {};
+  state.todayChecks[taskId] = !state.todayChecks[taskId];
+  saveState();
+
+  if (state.todayChecks[taskId]) {
+    showXPToast('+' + xp + ' XP');
+  }
+
+  updateQuestUI();
+}
+
+// ── SUBMIT DAY ──
+function submitDay() {
+  const dayIdx = getDayIndex();
+  const checks = state.todayChecks || {};
+
+  let xp = 0;
+  let totalTasks = 0;
+  let doneTasks = 0;
+
+  PILLARS.forEach(pillar => {
+    pillar.tasks.forEach(task => {
+      totalTasks++;
+      if (checks[task.id]) { xp += task.xp; doneTasks++; }
+    });
+  });
+
+  const perfect = doneTasks === totalTasks;
+  if (perfect) xp += PERFECT_BONUS;
+
+  const prevXP = state.totalXP;
+  const { current: prevLevel } = getLevelData(prevXP);
+
+  state.totalXP = (state.totalXP || 0) + xp;
+  state.days[dayIdx] = { done: true, tasks: { ...checks }, xp, perfect };
+  state.todayChecks = {};
+
+  if (perfect) {
+    state.perfectDays = (state.perfectDays || 0) + 1;
+    state.streak = (state.streak || 0) + 1;
+  } else if (doneTasks > 0) {
+    state.streak = (state.streak || 0) + 1;
+  } else {
+    state.streak = 0;
+  }
+
+  saveState();
+
+  // Check level up
+  const { current: newLevel } = getLevelData(state.totalXP);
+  if (newLevel.level > prevLevel.level) {
+    showLevelUp(newLevel);
+  }
+
+  spawnParticles();
+  updateAllUI();
+}
+
+// ── PARTICLES ──
+function spawnParticles() {
+  const colors = ['#C8972A', '#E8B84B', '#fff8e0', '#3aaa8a'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (Math.random() * 360) * (Math.PI / 180);
+    const dist = 80 + Math.random() * 120;
+    p.style.cssText = `
+      left: 50%; top: 60%;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      --tx: ${Math.cos(angle) * dist}px;
+      --ty: ${Math.sin(angle) * dist}px;
+      animation-delay: ${Math.random() * 0.2}s;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1400);
+  }
+}
+
+// ── XP TOAST ──
+function showXPToast(text) {
+  const t = document.createElement('div');
+  t.className = 'xp-toast';
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1500);
+}
+
+// ── LEVEL UP ──
+function showLevelUp(levelData) {
+  document.getElementById('levelupEmoji').textContent = levelData.emoji;
+  document.getElementById('levelupTitle').textContent = levelData.title;
+  document.getElementById('levelupOverlay').classList.add('show');
+  spawnParticles(); spawnParticles();
+}
+
+function closeLevelup() {
+  document.getElementById('levelupOverlay').classList.remove('show');
+}
+
+// ── VIEWS ──
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'quest') updateQuestUI();
+  if (name === 'log') updateLogUI();
+}
+
+// ── SETUP ──
+function startSession() {
+  const dateVal = document.getElementById('startDateInput').value;
+  const daysVal = document.getElementById('totalDaysInput').value;
+  if (!dateVal) { alert('الرجاء اختيار تاريخ البداية'); return; }
+  initState(dateVal, daysVal);
+  document.getElementById('setupScreen').style.display = 'none';
+  updateAllUI();
+}
+
+// ── INIT ──
+window.onload = () => {
+  // Default date input to today
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('startDateInput').value = today;
+
+  if (loadState() && state.startDate) {
+    document.getElementById('setupScreen').style.display = 'none';
+    updateAllUI();
+  }
+};
+</script>
+</body>
+</html>
