@@ -291,6 +291,20 @@
       <div class="section-title">سجل الموسم</div>
       <div id="logContainer"><div class="empty">ما فيه أيام منتهية بعد</div></div>
     </div>
+    <div class="panel">
+      <div class="section-title">⚙️ إعدادات الموسم</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div class="setup-label" style="margin-bottom:6px">تاريخ أول يوم شغل</div>
+          <input type="date" class="setup-input" id="editStartDate" style="margin-bottom:0">
+        </div>
+        <div>
+          <div class="setup-label" style="margin-bottom:6px">عدد أيام العمل</div>
+          <input type="number" class="setup-input" id="editTotalDays" min="1" max="30" style="margin-bottom:0">
+        </div>
+        <button class="setup-start" onclick="saveSettings()">حفظ التغييرات</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -769,8 +783,25 @@ function jumpToDay(idx) {
   showView('quest');
 }
 
+// ── SETTINGS ──
+function saveSettings() {
+  const d = document.getElementById('editStartDate').value;
+  const n = parseInt(document.getElementById('editTotalDays').value, 10);
+  if (!d) { alert('اختر تاريخ البداية'); return; }
+  if (!n || n < 1 || n > 30) { alert('عدد الأيام لازم يكون بين 1 و30'); return; }
+  state.startDate = d;
+  state.totalDays = n;
+  saveState();
+  updateAllUI();
+  alert('تم حفظ الإعدادات ✓');
+}
+
 // ── LOG ──
 function updateLogUI() {
+  const eDate = document.getElementById('editStartDate');
+  const eDays = document.getElementById('editTotalDays');
+  if (eDate) eDate.value = state.startDate || '';
+  if (eDays) eDays.value = state.totalDays || '';
   const c = document.getElementById('logContainer');
   const entries = Object.entries(state.days).filter(([,d])=>d.done);
   if (!entries.length) { c.innerHTML='<div class="empty">ما فيه أيام منتهية بعد</div>'; return; }
