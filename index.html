@@ -908,7 +908,9 @@ function updateQuestUI() {
   document.getElementById('dayPrevBtn').disabled = viewDayIdx <= 0;
   document.getElementById('dayNextBtn').disabled = viewDayIdx >= state.totalDays-1;
 
-  const pillars   = getPillars();
+  const pillars = submitted && state.days[viewDayIdx]?.pillarsSnapshot
+    ? state.days[viewDayIdx].pillarsSnapshot
+    : getPillars();
   const zoneContainer = document.getElementById('zoneReadinessContainer');
   zoneContainer.innerHTML = '';
   zoneContainer.appendChild(buildZoneReadinessPanel(viewDayIdx, submitted));
@@ -1275,8 +1277,16 @@ function submitDay() {
 
   const zoneRounds = getZoneRoundsForDay(viewDayIdx).map(round => ({ ...round }));
   const evidence = getEvidenceForDay(viewDayIdx).map(e => ({ ...e }));
+  const pillarsSnapshot = pillars.map(p => ({
+    id: p.id, icon: p.icon, name: p.name,
+    tasks: p.tasks.map(t => ({
+      id: t.id, text: t.text, xp: t.xp, partial: !!t.partial,
+      note: t.note || '', _scope: t._scope,
+      core: !!t.core, readiness: !!t.readiness
+    }))
+  }));
   state.days[viewDayIdx] = {
-    done:true, tasks:{...checks}, zoneRounds, evidence,
+    done:true, tasks:{...checks}, zoneRounds, evidence, pillarsSnapshot,
     xp: levelXP, baseXP: xp, activityXP: levelXP + extraXP, extraXP,
     multiplier, multiplierXP: levelXP - xp, perfect, coreComplete
   };
