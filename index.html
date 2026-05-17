@@ -746,7 +746,7 @@ function updateHomeUI() {
 function updateQuestUI() {
   const dayIdx = getDayIndex();
   const submitted = isTodaySubmitted();
-  const checks = submitted ? (state.days[dayIdx]?.tasks || {}) : (state.todayChecks || {});
+  const checks = submitted ? (state.days[dayIdx]?.tasks || {}) : (state.todayChecks[dayIdx] || {});
 
   // Date
   const today = new Date();
@@ -863,7 +863,9 @@ function updateAllUI() {
 // ── TOGGLE TASK ──
 function toggleTask(taskId, xp, pillar) {
   if (!state.todayChecks) state.todayChecks = {};
-  state.todayChecks[taskId] = !state.todayChecks[taskId];
+  const dayIdx = getDayIndex();
+  if (!state.todayChecks[dayIdx]) state.todayChecks[dayIdx] = {};
+  state.todayChecks[dayIdx][taskId] = !state.todayChecks[dayIdx][taskId];
   saveState();
 
   if (state.todayChecks[taskId]) {
@@ -876,7 +878,7 @@ function toggleTask(taskId, xp, pillar) {
 // ── SUBMIT DAY ──
 function submitDay() {
   const dayIdx = getDayIndex();
-  const checks = state.todayChecks || {};
+  const checks = (state.todayChecks || {})[dayIdx] || {};
 
   let xp = 0;
   let totalTasks = 0;
@@ -897,15 +899,19 @@ function submitDay() {
 
   state.totalXP = (state.totalXP || 0) + xp;
   state.days[dayIdx] = { done: true, tasks: { ...checks }, xp, perfect };
-  state.todayChecks = {};
+  delete state.todayChecks[dayIdx];
 
   if (perfect) {
     state.perfectDays = (state.perfectDays || 0) + 1;
-    state.streak = (state.streak || 0) + 1;
-  } else if (doneTasks > 0) {
+  }
+
+  // Streak: only count if previous calendar day was also completed
+  const prevDayIdx = dayIdx - 1;
+  const prevDayDone = prevDayIdx >= 0 ? !!(state.days[prevDayIdx]?.done) : false;
+  if (dayIdx === 0 || prevDayDone) {
     state.streak = (state.streak || 0) + 1;
   } else {
-    state.streak = 0;
+    state.streak = 1;
   }
 
   saveState();
