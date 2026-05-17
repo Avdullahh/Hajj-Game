@@ -203,6 +203,15 @@
   .reopen-btn { width: 100%; background: none; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-dim); font-family: 'Amiri', serif; font-size: 15px; padding: 10px; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
   .reopen-btn:hover { border-color: var(--gold-dim); color: var(--text); }
 
+  /* READINESS */
+  .readiness-panel { padding: 16px 20px; }
+  .readiness-label { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+  .readiness-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  .readiness-pct { font-family: 'Cinzel Decorative', cursive; font-size: 32px; color: var(--gold-light); transition: color 0.3s; }
+  .readiness-status { font-size: 14px; flex: 1; }
+  .readiness-bar-track { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; height: 8px; overflow: hidden; }
+  .readiness-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease, background 0.3s; }
+
   /* HOME CTA */
   .home-cta { width: 100%; background: linear-gradient(135deg,#1a3a2a,#0d2018); border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal-light); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; margin-top: 16px; }
   .home-cta:hover { box-shadow: 0 4px 16px rgba(42,170,138,0.2); }
@@ -255,6 +264,16 @@
       <div class="stat-box"><span class="stat-value" id="statDay">—</span><div class="stat-label">اليوم</div></div>
       <div class="stat-box"><span class="stat-value" id="statStreak">0</span><div class="stat-label">🔥 تسلسل</div></div>
       <div class="stat-box"><span class="stat-value" id="statPerfect">0</span><div class="stat-label">⭐ مثالي</div></div>
+    </div>
+    <div class="panel readiness-panel" style="margin-top:16px">
+      <div class="readiness-label">📊 جاهزية الزون — اليوم</div>
+      <div class="readiness-row">
+        <span class="readiness-pct" id="readinessPct">0%</span>
+        <span class="readiness-status" id="readinessStatus">🔴 يحتاج تصعيد</span>
+      </div>
+      <div class="readiness-bar-track">
+        <div class="readiness-bar-fill" id="readinessBarFill" style="width:0%"></div>
+      </div>
     </div>
     <button class="home-cta" onclick="showView('quest')">⚔️ روح لمهام اليوم</button>
   </div>
@@ -311,22 +330,24 @@
 <script>
 const BASE_PILLARS = [
   { id: 'attendance', icon: '🕌', name: 'الحضور والانضباط', tasks: [
-    { id: 'checkin',  text: 'الحضور في الوقت المحدد', xp: 20, partial: false },
-    { id: 'briefing', text: 'حضور الإحاطة الصباحية',  xp: 15, partial: false },
+    { id: 'checkin',     text: 'الحضور وتسجيل البداية في الوقت المحدد', xp: 12, partial: false, core: true }, // badge: الانضباط
+    { id: 'briefing',    text: 'حضور الإحاطة الصباحية واستلام التعليمات', xp: 10, partial: false, core: true }, // badge: الانضباط
+    { id: 'shift_ready', text: 'الجاهزية الميدانية طوال الوردية', xp: 18, partial: true } // badge: الانضباط
   ]},
-  { id: 'rounds', icon: '🔍', name: 'الجولات الميدانية', tasks: [
-    { id: 'round1', text: 'الجولة الميدانية الأولى',  xp: 20, partial: false },
-    { id: 'round2', text: 'الجولة الميدانية الثانية', xp: 20, partial: false },
-    { id: 'round3', text: 'الجولة الميدانية الثالثة', xp: 20, partial: false },
+  { id: 'facilities', icon: '🚶', name: 'الممرات والمرافق', tasks: [
+    { id: 'corridors',         text: 'فحص انسيابية الممرات ونقاط التكدس', xp: 18, partial: true,  readiness: true },
+    { id: 'corridor_crowding', text: 'الإبلاغ عند وجود ازدحام في الممرات', xp: 8,  partial: false, readiness: true },
+    { id: 'fridges',           text: 'فحص توفر المياه في الثلاجات',         xp: 16, partial: true,  readiness: true },
+    { id: 'fridge_empty',      text: 'تصعيد مشكلة ثلاجة فارغة',             xp: 8,  partial: false, readiness: true },
+    { id: 'cleaning',          text: 'متابعة مستوى النظافة في المرافق',      xp: 16, partial: true,  readiness: true },
+    { id: 'cleaning_weak',     text: 'تسجيل مرفق عند ضعف مستوى النظافة',   xp: 8,  partial: false, readiness: true }
   ]},
-  { id: 'reports', icon: '📋', name: 'التقارير', tasks: [
-    { id: 'report',    text: 'تقديم التقرير اليومي',           xp: 20, partial: false },
-    { id: 'incidents', text: 'تسجيل الحوادث / تأكيد ما في', xp: 15, partial: false },
-  ]},
-  { id: 'coord', icon: '🤝', name: 'التنسيق', tasks: [
-    { id: 'zones',  text: 'التنسيق مع الزونات المجاورة', xp: 15, partial: false },
-    { id: 'issues', text: 'تابع طلب أو حل مشكلة',       xp: 15, partial: true  },
-  ]},
+  { id: 'reports', icon: '📋', name: 'التقارير والمتابعة', tasks: [
+    { id: 'update',                  text: 'رفع تحديث واضح لمسؤول الزون',                       xp: 22, partial: true,  core: true, readiness: true },
+    { id: 'log_note',                text: 'تسجيل ملاحظة ميدانية قابلة للتنفيذ',                  xp: 14, partial: false },
+    { id: 'close_note',              text: 'عدم وجود ملاحظة عاجلة مفتوحة بنهاية الوردية',         xp: 24, partial: false, core: true, readiness: true },
+    { id: 'solve_before_escalation', text: 'حل مشكلة ميدانية قبل التصعيد',                         xp: 26, partial: false }
+  ]}
 ];
 
 const PERFECT_BONUS = 50;
@@ -415,6 +436,14 @@ function calcDayXP(checks, pillars) {
   return { xp, perfect, total, fullDone };
 }
 
+// ── READINESS ──
+function calcReadiness(checks) {
+  const tasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.readiness);
+  const maxXP = tasks.reduce((s, t) => s + t.xp, 0);
+  const earned = tasks.reduce((s, t) => s + Math.round(t.xp * getCheckValue(checks, t.id) / 100), 0);
+  return maxXP > 0 ? Math.round(earned / maxXP * 100) : 0;
+}
+
 // ── HOME ──
 function updateHomeUI() {
   const xp = state.totalXP||0;
@@ -433,6 +462,18 @@ function updateHomeUI() {
   document.getElementById('statDay').textContent = (d+1)+' / '+state.totalDays;
   document.getElementById('statStreak').textContent = state.streak||0;
   document.getElementById('statPerfect').textContent = state.perfectDays||0;
+
+  const todayChecks = state.days[d]?.done
+    ? state.days[d].tasks
+    : ((state.todayChecks||{})[d]||{});
+  const rPct = calcReadiness(todayChecks);
+  const rColor  = rPct >= 90 ? 'var(--teal-light)' : rPct >= 70 ? 'var(--gold-light)' : 'var(--red-light)';
+  const rStatus = rPct >= 90 ? '🟢 جاهز جداً'     : rPct >= 70 ? '🟡 يحتاج متابعة'   : '🔴 يحتاج تصعيد';
+  document.getElementById('readinessPct').textContent   = rPct + '%';
+  document.getElementById('readinessPct').style.color   = rColor;
+  document.getElementById('readinessStatus').textContent = rStatus;
+  document.getElementById('readinessBarFill').style.width      = rPct + '%';
+  document.getElementById('readinessBarFill').style.background = rColor;
 }
 
 // ── QUEST ──
@@ -730,12 +771,20 @@ function submitDay() {
   const { current: prevLvl } = getLevelData(prevXP);
 
   state.totalXP = (state.totalXP||0) + xp;
-  state.days[viewDayIdx] = { done:true, tasks:{...checks}, xp, perfect };
+
+  const coreTasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.core);
+  const coreComplete = coreTasks.every(t => getCheckValue(checks, t.id) === 100);
+
+  state.days[viewDayIdx] = { done:true, tasks:{...checks}, xp, perfect, coreComplete };
   delete state.todayChecks[viewDayIdx];
   if (perfect) state.perfectDays = (state.perfectDays||0)+1;
 
-  const prevDone = viewDayIdx>0 ? !!(state.days[viewDayIdx-1]?.done) : false;
-  state.streak = (viewDayIdx===0||prevDone) ? (state.streak||0)+1 : 1;
+  if (coreComplete) {
+    const prevCore = viewDayIdx > 0 ? !!(state.days[viewDayIdx-1]?.coreComplete) : false;
+    state.streak = (viewDayIdx === 0 || prevCore) ? (state.streak||0)+1 : 1;
+  } else {
+    state.streak = 0;
+  }
 
   saveState();
   const { current: newLvl } = getLevelData(state.totalXP);
@@ -762,7 +811,7 @@ function reopenDay() {
   let streak = 0;
   const todayIdx = getTodayIndex();
   for (let i = todayIdx; i >= 0; i--) {
-    if (state.days[i]?.done) streak++;
+    if (state.days[i]?.coreComplete) streak++;
     else break;
   }
   state.streak = streak;
@@ -806,7 +855,7 @@ function updateLogUI() {
   const entries = Object.entries(state.days).filter(([,d])=>d.done);
   if (!entries.length) { c.innerHTML='<div class="empty">ما فيه أيام منتهية بعد</div>'; return; }
   entries.sort(([a],[b])=>+a-+b);
-  const maxXP = 170+PERFECT_BONUS;
+  const maxXP = BASE_PILLARS.flatMap(p => p.tasks).reduce((s, t) => s + t.xp, 0) + PERFECT_BONUS;
   c.innerHTML = entries.map(([idx,day])=>{
     const pct = Math.min(100,(day.xp/maxXP)*100);
     const col = day.perfect?'var(--gold)':(pct>60?'var(--teal)':'var(--text-dim)');
@@ -851,8 +900,9 @@ function showView(name) {
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
+  if (name==='home')  updateHomeUI();
   if (name==='quest') { viewDayIdx=getTodayIndex(); updateQuestUI(); }
-  if (name==='log') updateLogUI();
+  if (name==='log')   updateLogUI();
 }
 
 // ── SETUP ──
