@@ -529,9 +529,9 @@ function buildPartialItem(task, val, pillar, submitted) {
   const top = document.createElement('div');
   top.className = 'task-partial-top';
 
-  const lbl = document.createElement('span');
-  lbl.className = 'task-partial-label';
-  lbl.textContent = task.text;
+  const taskLbl = document.createElement('span');
+  taskLbl.className = 'task-partial-label';
+  taskLbl.textContent = task.text;
 
   const earned = document.createElement('span');
   const earnedXP = Math.round(task.xp * val / 100);
@@ -539,7 +539,7 @@ function buildPartialItem(task, val, pillar, submitted) {
   earned.textContent = earnedXP + ' / ' + task.xp + ' XP';
 
   const actions = buildActionBtns(task, pillar, wrap);
-  top.append(lbl, earned, actions);
+  top.append(taskLbl, earned, actions);
   wrap.appendChild(top);
 
   const pctRow = document.createElement('div');
@@ -552,14 +552,14 @@ function buildPartialItem(task, val, pillar, submitted) {
   inp.className = 'pct-input' + (val === 100 ? ' full' : '');
   inp.disabled = !!submitted;
 
-  const lbl = document.createElement('span');
-  lbl.className = 'pct-label';
-  lbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * val / 100) + ' XP';
+  const pctLbl = document.createElement('span');
+  pctLbl.className = 'pct-label';
+  pctLbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * val / 100) + ' XP';
 
   inp.oninput = () => {
     let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
     inp.className = 'pct-input' + (pct === 100 ? ' full' : '');
-    lbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * pct / 100) + ' XP';
+    pctLbl.textContent = '% من ' + task.xp + ' XP = ' + Math.round(task.xp * pct / 100) + ' XP';
     earned.className = 'task-partial-earned' + (pct > 0 ? ' has-xp' : '');
     earned.textContent = Math.round(task.xp * pct / 100) + ' / ' + task.xp + ' XP';
   };
@@ -570,7 +570,7 @@ function buildPartialItem(task, val, pillar, submitted) {
   };
 
   pctRow.appendChild(inp);
-  pctRow.appendChild(lbl);
+  pctRow.appendChild(pctLbl);
   wrap.appendChild(pctRow);
   return wrap;
 }
