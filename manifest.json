@@ -1,0 +1,9 @@
+{
+  "name": "مشرف الزون",
+  "short_name": "الزون",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080A14",
+  "theme_color": "#080A14"
+}
