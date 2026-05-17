@@ -1158,7 +1158,7 @@ function getDayCustomTask(dayIdx, pillarId, taskId) {
   return (((state.dayCustomTasks||{})[dayIdx]||{})[pillarId]||[]).find(t => t.id === taskId);
 }
 
-function showEditRow(task, pillar, el) {
+function showEditRow(task, pillar, targetEl) {
   const isGlobalCustom = !!getGlobalCustomTask(pillar.id, task.id);
   const isDayCustom = !!getDayCustomTask(viewDayIdx, pillar.id, task.id);
   const canChooseScope = isGlobalCustom || isDayCustom;
@@ -1183,7 +1183,7 @@ function showEditRow(task, pillar, el) {
       <button class="task-edit-cancel">تراجع</button>
     </div>
   `;
-  el.replaceWith(row);
+  targetEl.replaceWith(row);
   const { textInput, xpInput, noteInput, partialInput, allDaysInput, saveBtn, cancelBtn } = controls(row, {
     textInput: '.task-edit-text',
     xpInput: '.task-edit-xp',
