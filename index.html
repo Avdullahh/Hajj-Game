@@ -250,6 +250,28 @@
   .readiness-breakdown-chip { font-size: 12px; color: var(--text-dim); background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 2px 10px; }
   .readiness-breakdown-chip.has-data { color: var(--gold); border-color: var(--gold-dim); }
 
+  /* EVIDENCE */
+  .evidence-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; }
+  .evidence-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .evidence-title { font-size: 15px; color: var(--cream); font-weight: 700; }
+  .evidence-count { font-size: 13px; color: var(--gold-dim); }
+  .evidence-hint { color: var(--text-dim); font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+  .evidence-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .evidence-cat-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+  .evidence-cat-btn { background: none; border: 1px solid var(--border); border-radius: 20px; color: var(--text-dim); font-family: 'Amiri', serif; font-size: 13px; padding: 4px 11px; cursor: pointer; transition: all 0.2s; }
+  .evidence-cat-btn.active { background: rgba(42,122,106,0.15); border-color: var(--teal); color: var(--teal-light); }
+  .evidence-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Amiri', serif; font-size: 14px; padding: 8px 10px; outline: none; text-align: right; resize: vertical; min-height: 56px; line-height: 1.5; }
+  .evidence-input:focus { border-color: var(--teal); }
+  .evidence-add { background: rgba(42,122,106,0.15); border: 1px solid var(--teal); border-radius: 6px; color: var(--teal-light); font-family: 'Amiri', serif; font-size: 14px; padding: 7px 14px; cursor: pointer; align-self: flex-end; }
+  .evidence-add:hover { background: rgba(42,122,106,0.28); }
+  .evidence-list { display: flex; flex-direction: column; gap: 8px; }
+  .evidence-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .evidence-card-top { display: flex; align-items: flex-start; gap: 8px; }
+  .evidence-cat-badge { font-size: 11px; background: rgba(42,122,106,0.12); border: 1px solid var(--teal); border-radius: 10px; padding: 1px 8px; color: var(--teal-light); flex-shrink: 0; margin-top: 2px; }
+  .evidence-card-text { flex: 1; font-size: 14px; color: var(--text); line-height: 1.6; overflow-wrap: anywhere; }
+  .evidence-delete { background: none; border: 1px solid transparent; border-radius: 5px; color: var(--text-dim); cursor: pointer; font-family: 'Amiri', serif; min-width: 30px; min-height: 30px; flex-shrink: 0; }
+  .evidence-delete:hover { border-color: var(--red); color: var(--red-light); background: rgba(122,32,32,0.1); }
+
   /* HOME CTA */
   .home-cta { width: 100%; background: linear-gradient(135deg,#1a3a2a,#0d2018); border: 1px solid var(--teal); border-radius: var(--radius); color: var(--teal-light); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; margin-top: 16px; }
   .home-cta:hover { box-shadow: 0 4px 16px rgba(42,170,138,0.2); }
@@ -337,6 +359,7 @@
     <div class="panel">
       <div id="zoneReadinessContainer"></div>
       <div id="pillarsContainer"></div>
+      <div id="evidenceContainer"></div>
       <hr class="divider">
       <div class="bonus-banner" id="bonusBanner">
         <div class="bonus-banner-text">⭐ خلّصت كل المهام: +50 نقطة خبرة</div>
@@ -432,7 +455,7 @@ function escapeHtml(value) {
 
 function initState(startDate, totalDays) {
   state = { startDate, totalDays: parseInt(totalDays), totalXP: 0, streak: 0, perfectDays: 0,
-    days: {}, todayChecks: {}, zoneRoundsDrafts: {}, customTasks: {}, dayCustomTasks: {}, hiddenTasks: [], taskOverrides: {} };
+    days: {}, todayChecks: {}, zoneRoundsDrafts: {}, evidenceDrafts: {}, customTasks: {}, dayCustomTasks: {}, hiddenTasks: [], taskOverrides: {} };
   saveState();
 }
 
@@ -753,6 +776,107 @@ function renderHomeRounds(dayIdx) {
 }
 
 // ── QUEST ──
+// ── EVIDENCE ──
+const EVIDENCE_CATEGORIES = ['مبادرة', 'تواصل', 'حل مشكلة', 'متابعة', 'أثر واضح', 'أخرى'];
+
+function getEvidenceForDay(idx) {
+  if (Array.isArray(state.days?.[idx]?.evidence)) return state.days[idx].evidence;
+  if (Array.isArray((state.evidenceDrafts||{})[idx])) return state.evidenceDrafts[idx];
+  return [];
+}
+
+function addEvidence(dayIdx, category, text) {
+  if (!state.evidenceDrafts) state.evidenceDrafts = {};
+  if (!Array.isArray(state.evidenceDrafts[dayIdx])) state.evidenceDrafts[dayIdx] = [];
+  state.evidenceDrafts[dayIdx].push({ id: 'ev_'+Date.now(), category, text });
+  saveState();
+  updateQuestUI();
+}
+
+function deleteEvidence(dayIdx, evidenceId) {
+  if (!state.evidenceDrafts?.[dayIdx]) return;
+  state.evidenceDrafts[dayIdx] = state.evidenceDrafts[dayIdx].filter(e => e.id !== evidenceId);
+  saveState();
+  updateQuestUI();
+}
+
+function buildEvidenceCard(entry, dayIdx, submitted) {
+  const card = document.createElement('div');
+  card.className = 'evidence-card';
+  const top = document.createElement('div');
+  top.className = 'evidence-card-top';
+  const badge = document.createElement('span');
+  badge.className = 'evidence-cat-badge';
+  badge.textContent = entry.category;
+  const txt = document.createElement('div');
+  txt.className = 'evidence-card-text';
+  txt.textContent = entry.text;
+  top.append(badge, txt);
+  if (!submitted) {
+    const del = document.createElement('button');
+    del.className = 'evidence-delete';
+    del.textContent = '✕';
+    del.title = 'احذف';
+    del.onclick = () => deleteEvidence(dayIdx, entry.id);
+    top.appendChild(del);
+  }
+  card.appendChild(top);
+  return card;
+}
+
+function buildEvidencePanel(dayIdx, submitted) {
+  const entries = getEvidenceForDay(dayIdx);
+  const box = document.createElement('div');
+  box.className = 'evidence-box';
+  const head = document.createElement('div');
+  head.className = 'evidence-head';
+  head.innerHTML = `<div class="evidence-title">🏅 دليل اليوم</div><div class="evidence-count">${entries.length ? entries.length + ' إدخال' : ''}</div>`;
+  const hint = document.createElement('div');
+  hint.className = 'evidence-hint';
+  hint.textContent = 'سجّل الأفعال التي تستحق التقدير لملف أفضل موظف. لا تؤثر على XP.';
+  box.append(head, hint);
+  if (!submitted) {
+    const form = document.createElement('div');
+    form.className = 'evidence-form';
+    const catSel = document.createElement('div');
+    catSel.className = 'evidence-cat-selector';
+    let selectedCat = EVIDENCE_CATEGORIES[0];
+    EVIDENCE_CATEGORIES.forEach((cat, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'evidence-cat-btn' + (i === 0 ? ' active' : '');
+      btn.textContent = cat;
+      btn.onclick = () => {
+        catSel.querySelectorAll('.evidence-cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedCat = cat;
+      };
+      catSel.appendChild(btn);
+    });
+    const inp = document.createElement('textarea');
+    inp.className = 'evidence-input';
+    inp.placeholder = 'صف الفعل باختصار: ماذا حصل، وما أثره على الحجاج أو الزون؟';
+    const addBtn = document.createElement('button');
+    addBtn.className = 'evidence-add';
+    addBtn.textContent = '+ أضف دليلاً';
+    addBtn.onclick = () => {
+      const text = inp.value.trim();
+      if (!text) return;
+      addEvidence(dayIdx, selectedCat, text);
+    };
+    form.append(catSel, inp, addBtn);
+    box.appendChild(form);
+  }
+  const list = document.createElement('div');
+  list.className = 'evidence-list';
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty" style="padding:12px">ما فيه أدلة مسجلة لهذا اليوم</div>';
+  } else {
+    entries.forEach(e => list.appendChild(buildEvidenceCard(e, dayIdx, submitted)));
+  }
+  box.appendChild(list);
+  return box;
+}
+
 function updateQuestUI() {
   const submitted = isDaySubmitted(viewDayIdx);
   const isToday   = isViewingToday();
@@ -770,6 +894,10 @@ function updateQuestUI() {
   const zoneContainer = document.getElementById('zoneReadinessContainer');
   zoneContainer.innerHTML = '';
   zoneContainer.appendChild(buildZoneReadinessPanel(viewDayIdx, submitted));
+
+  const evContainer = document.getElementById('evidenceContainer');
+  evContainer.innerHTML = '';
+  evContainer.appendChild(buildEvidencePanel(viewDayIdx, submitted));
 
   const container = document.getElementById('pillarsContainer');
   container.innerHTML = '';
@@ -1128,13 +1256,15 @@ function submitDay() {
   const coreComplete = coreTasks.every(t => getCheckValue(checks, t.id) === 100);
 
   const zoneRounds = getZoneRoundsForDay(viewDayIdx).map(round => ({ ...round }));
+  const evidence = getEvidenceForDay(viewDayIdx).map(e => ({ ...e }));
   state.days[viewDayIdx] = {
-    done:true, tasks:{...checks}, zoneRounds,
+    done:true, tasks:{...checks}, zoneRounds, evidence,
     xp: levelXP, baseXP: xp, activityXP: levelXP + extraXP, extraXP,
     multiplier, multiplierXP: levelXP - xp, perfect, coreComplete
   };
   delete state.todayChecks[viewDayIdx];
   if (state.zoneRoundsDrafts) delete state.zoneRoundsDrafts[viewDayIdx];
+  if (state.evidenceDrafts) delete state.evidenceDrafts[viewDayIdx];
   if (perfect) state.perfectDays = (state.perfectDays||0)+1;
 
   if (coreComplete) {
@@ -1165,6 +1295,8 @@ function reopenDay() {
   state.todayChecks[viewDayIdx] = { ...day.tasks };
   if (!state.zoneRoundsDrafts) state.zoneRoundsDrafts = {};
   state.zoneRoundsDrafts[viewDayIdx] = (day.zoneRounds||[]).map(round => ({ ...round }));
+  if (!state.evidenceDrafts) state.evidenceDrafts = {};
+  state.evidenceDrafts[viewDayIdx] = (day.evidence||[]).map(e => ({ ...e }));
 
   // Recompute streak from scratch from submitted days
   delete state.days[viewDayIdx];
@@ -1223,7 +1355,7 @@ function updateLogUI() {
     return `<div class="log-item" onclick="jumpToDay(${+idx})">
       <div class="log-day">${+idx+1}</div>
       <div class="log-bar-wrap">
-        <div class="log-label">${day.perfect?'⭐ يوم مثالي':'يوم عادي'}</div>
+        <div class="log-label">${day.perfect?'⭐ يوم مثالي':'يوم عادي'}${(day.evidence?.length) ? ' · 🏅 '+day.evidence.length+' دليل' : ''}</div>
         <div class="log-bar-track"><div class="log-bar-fill" style="width:${pct}%;background:${col}"></div></div>
       </div>
       <div class="log-xp">${day.xp} XP${extra ? ' +' + extra + ' متابعة' : ''}</div>
