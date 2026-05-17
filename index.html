@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#080A14">
+<meta name="theme-color" content="#F2E8D2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>مشرف الزون — عبدالله الحازمي</title>
@@ -12,12 +12,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel+Decorative:wght@700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080A14; --bg2: #0E1020; --panel: #121528; --border: #2a2d4a;
-    --gold: #C8972A; --gold-light: #E8B84B; --gold-dim: #7a5a15;
-    --cream: #F0E6C8; --cream-dim: #9a8f74;
-    --teal: #2a7a6a; --teal-light: #3aaa8a;
-    --red: #7a2020; --red-light: #c04040;
-    --text: #D8CCB0; --text-dim: #6a6050;
+    --bg: #F2E8D2; --bg2: #E8DCBF; --panel: #FBF7EC; --border: #C0963A;
+    --gold: #7A5010; --gold-light: #4A2C06; --gold-dim: #9A7220;
+    --cream: #F5EDD8; --cream-dim: #C8B890;
+    --teal: #0F5A4A; --teal-light: #0A4035;
+    --red: #8B1818; --red-light: #B02828;
+    --text: #1A1008; --text-dim: #6A5038;
     --radius: 8px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,10 +28,20 @@
   }
   body::before {
     content: ''; position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='%23C8972A' stroke-width='0.3' opacity='0.12'%3E%3Cpolygon points='40,5 75,27.5 75,52.5 40,75 5,52.5 5,27.5'/%3E%3Cpolygon points='40,15 65,30 65,50 40,65 15,50 15,30'/%3E%3Cline x1='40' y1='5' x2='40' y2='15'/%3E%3Cline x1='75' y1='27.5' x2='65' y2='30'/%3E%3Cline x1='75' y1='52.5' x2='65' y2='50'/%3E%3Cline x1='40' y1='75' x2='40' y2='65'/%3E%3Cline x1='5' y1='52.5' x2='15' y2='50'/%3E%3Cline x1='5' y1='27.5' x2='15' y2='30'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='%239A7220' stroke-width='0.4' opacity='0.22'%3E%3Cpolygon points='40,5 75,27.5 75,52.5 40,75 5,52.5 5,27.5'/%3E%3Cpolygon points='40,15 65,30 65,50 40,65 15,50 15,30'/%3E%3Cline x1='40' y1='5' x2='40' y2='15'/%3E%3Cline x1='75' y1='27.5' x2='65' y2='30'/%3E%3Cline x1='75' y1='52.5' x2='65' y2='50'/%3E%3Cline x1='40' y1='75' x2='40' y2='65'/%3E%3Cline x1='5' y1='52.5' x2='15' y2='50'/%3E%3Cline x1='5' y1='27.5' x2='15' y2='30'/%3E%3C/g%3E%3C/svg%3E");
     pointer-events: none; z-index: 0;
   }
   .app { position: relative; z-index: 1; width: 100%; max-width: 480px; margin: 0 auto; padding: 16px; }
+
+  /* Light theme fixes for elements that used light cream on dark panels */
+  .pillar-name { color: var(--text) !important; }
+  .char-title { color: var(--text-dim) !important; font-style: italic; }
+  .task-note, .task-partial-note { color: var(--text-dim) !important; }
+  .task-item.done { background: rgba(15,90,74,0.10) !important; }
+  .pct-input.full { background: rgba(15,90,74,0.12) !important; }
+  .char-avatar { box-shadow: 0 0 24px rgba(154,114,32,0.25) !important; }
+  .bonus-banner.unlocked { box-shadow: 0 0 20px rgba(154,114,32,0.25) !important; }
+  .readiness-bar-track { background: var(--bg2) !important; }
 
   /* NAV */
   .nav { display: flex; gap: 4px; margin-bottom: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; }
