@@ -312,6 +312,7 @@
   .flow-title { font-family: 'Scheherazade New', serif; font-size: 23px; font-weight: 700; color: var(--gold-light); margin-bottom: 14px; }
   .flow-question { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
   .flow-question-label { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+  .flow-sublabel { font-size: 12px; color: var(--text-dim); margin-top: 2px; margin-bottom: 8px; }
   .flow-options, .note-cat-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .flow-choice, .note-cat-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; color: var(--text-dim); font-family: 'Amiri', serif; font-size: 14px; padding: 6px 14px; cursor: pointer; }
   .flow-choice.active, .note-cat-btn.active { background: rgba(15,90,74,0.14); border-color: var(--teal); color: var(--teal-light); font-weight: 700; }
@@ -1471,7 +1472,7 @@ function getTodayLastUpdateLabel(dayIdx) {
 }
 
 let closingStep = 1;
-let closingDraft = { readiness: 75, hasOpenNotes: 'yes', highlight: '' };
+let closingDraft = { readiness: 75, highlight: '' };
 
 function openClosingFlow() {
   if (isDaySubmitted(getTodayIndex())) return;
@@ -1479,7 +1480,7 @@ function openClosingFlow() {
   state.todayPhaseDayIdx = getTodayIndex();
   saveState();
   closingStep = 1;
-  closingDraft = { readiness: calcReadiness(getZoneRoundsForDay(getTodayIndex())) || 75, hasOpenNotes: 'yes', highlight: '' };
+  closingDraft = { readiness: calcReadiness(getZoneRoundsForDay(getTodayIndex())) || 75, highlight: '' };
   renderClosingStep();
   openFlowModal('closingModal');
   updateHomeUI();
@@ -1489,10 +1490,12 @@ function renderClosingStep() {
   const content = $('closingStepContent');
   const actions = $('closingActions');
   if (!content || !actions) return;
+
   if (closingStep === 1) {
     content.innerHTML = `
       <div class="flow-question">
         <div class="flow-question-label">كيف كانت جاهزية الموقع؟</div>
+        <div class="flow-sublabel">سيُضاف كجولة إغلاق اليوم</div>
         <div class="flow-slider-row">
           <input id="closingReadinessSlider" type="range" min="0" max="100" value="${closingDraft.readiness}">
           <span class="flow-slider-value" id="closingReadinessValue">${closingDraft.readiness}%</span>
@@ -1505,17 +1508,6 @@ function renderClosingStep() {
       $('closingReadinessValue').textContent = closingDraft.readiness + '%';
     };
   } else if (closingStep === 2) {
-    content.innerHTML = `
-      <div class="flow-question">
-        <div class="flow-question-label">فيه ملاحظات مفتوحة؟</div>
-        <div class="flow-options" data-flow="closingOpenNotes">
-          <button class="flow-choice${closingDraft.hasOpenNotes === 'yes' ? ' active' : ''}" data-value="yes">إيه</button>
-          <button class="flow-choice${closingDraft.hasOpenNotes === 'no' ? ' active' : ''}" data-value="no">لا</button>
-        </div>
-      </div>`;
-    actions.innerHTML = `<button class="flow-secondary" onclick="prevClosingStep()">رجوع</button><button class="flow-primary" onclick="nextClosingStep()">التالي</button>`;
-    bindFlowChoices();
-  } else if (closingStep === 3) {
     content.innerHTML = `
       <div class="flow-question">
         <div class="flow-question-label">أهم شيء اليوم</div>
@@ -1542,8 +1534,6 @@ function nextClosingStep() {
   if (closingStep === 1) {
     addZoneRound(currentDayIdx, 'إغلاق اليوم', closingDraft.readiness, '', 'أخرى');
   } else if (closingStep === 2) {
-    closingDraft.hasOpenNotes = flowValue('closingOpenNotes');
-  } else if (closingStep === 3) {
     closingDraft.highlight = ($('closingHighlightInput')?.value || '').trim();
     const drafts = ensureObject(state, 'evidenceDrafts');
     ensureArray(drafts, currentDayIdx).push({ id: makeId('ev_'), category: 'أثر واضح', text: closingDraft.highlight || 'أهم شيء اليوم', timestamp: new Date().toISOString() });
@@ -1555,7 +1545,6 @@ function nextClosingStep() {
 }
 
 function submitClosingDay() {
-  autoComplete('close_note', 100);
   const currentDayIdx = getTodayIndex();
   viewDayIdx = currentDayIdx;
   state.todayPhase = 'done';
