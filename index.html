@@ -90,8 +90,11 @@
   .home-dhikr-panel::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--teal), transparent); }
   .home-dhikr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .home-dhikr-title { flex: 1; color: var(--teal-light); font-family: 'Scheherazade New', serif; font-size: 18px; }
-  .home-dhikr-dismiss { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); font-family: var(--number-font); font-size: 13px; min-width: 34px; min-height: 34px; cursor: pointer; }
+  .home-dhikr-dismiss { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); font-family: var(--number-font); font-size: 13px; min-width: 34px; min-height: 34px; cursor: pointer; transition: transform 0.25s; }
   .home-dhikr-dismiss:hover, .home-dhikr-dismiss:focus-visible { border-color: var(--teal); color: var(--teal-light); }
+  .home-dhikr-dismiss.collapsed { transform: rotate(180deg); }
+  .home-dhikr-list { overflow: hidden; transition: max-height 0.3s ease, opacity 0.25s ease; max-height: 600px; opacity: 1; }
+  .home-dhikr-list.collapsed { max-height: 0; opacity: 0; }
   .home-dhikr-list { display: flex; flex-direction: column; gap: 8px; }
   .home-dhikr-item { background: rgba(42,122,106,0.06); border: 1px solid rgba(15,90,74,0.18); border-radius: 6px; padding: 8px 10px; }
   .home-dhikr-text { font-size: 15px; line-height: 1.7; color: var(--text); }
@@ -1235,10 +1238,7 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
 function renderHomeDhikr() {
   const container = $('homeDhikrPanel');
   if (!container) return;
-  if (safeGetStorage(DHIKR_DISMISS_KEY) === '1') {
-    container.innerHTML = '';
-    return;
-  }
+  const isCollapsed = safeGetStorage(DHIKR_DISMISS_KEY) === '1';
   const dayIdx = Math.max(0, getTodayIndex());
   const dailyDhikr = Array.from({ length: Math.min(DAILY_DHIKR_COUNT, HOME_DHIKR.length) }, (_, offset) =>
     HOME_DHIKR[(dayIdx * DAILY_DHIKR_COUNT + offset) % HOME_DHIKR.length]
@@ -1247,9 +1247,9 @@ function renderHomeDhikr() {
     <div class="home-dhikr-panel" aria-label="أذكار وأدعية">
       <div class="home-dhikr-head">
         <div class="home-dhikr-title">أذكار وأدعية</div>
-        <button class="home-dhikr-dismiss" type="button" aria-label="إخفاء الأذكار">×</button>
+        <button class="home-dhikr-dismiss${isCollapsed ? ' collapsed' : ''}" type="button" aria-label="طي الأذكار">▾</button>
       </div>
-      <div class="home-dhikr-list">
+      <div class="home-dhikr-list${isCollapsed ? ' collapsed' : ''}">
         ${dailyDhikr.map(item => `
           <div class="home-dhikr-item">
             <div class="home-dhikr-text">${escapeHtml(item.text)}</div>
@@ -1257,12 +1257,13 @@ function renderHomeDhikr() {
           </div>`).join('')}
       </div>
     </div>`;
-  const dismissBtn = container.querySelector('.home-dhikr-dismiss');
-  if (dismissBtn) dismissBtn.addEventListener('click', dismissHomeDhikr);
+  const toggleBtn = container.querySelector('.home-dhikr-dismiss');
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleHomeDhikr);
 }
 
-function dismissHomeDhikr() {
-  safeSetStorage(DHIKR_DISMISS_KEY, '1');
+function toggleHomeDhikr() {
+  const isCollapsed = safeGetStorage(DHIKR_DISMISS_KEY) === '1';
+  safeSetStorage(DHIKR_DISMISS_KEY, isCollapsed ? '0' : '1');
   renderHomeDhikr();
 }
 
