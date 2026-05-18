@@ -731,7 +731,7 @@ function getDateForDay(idx) {
   const date = new Date(Date.UTC(y, m-1, d+idx));
   const hijri = gregorianToHijri(date);
   const hLabel = hijri.d + ' ' + HIJRI_MONTHS[hijri.m-1] + ' ' + hijri.y;
-  const gLabel = date.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' });
+  const gLabel = date.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' });
   return hLabel + ' · ' + gLabel;
 }
 
@@ -1777,7 +1777,7 @@ function wrapWithHijriPicker(inputId) {
     input.value = greg;
     const [gy, gm, gd] = greg.split('-').map(Number);
     const gDate = new Date(Date.UTC(gy, gm-1, gd));
-    hint.textContent = 'الميلادي: ' + gDate.toLocaleDateString('ar-SA-u-nu-latn', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+    hint.textContent = 'الميلادي: ' + gDate.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
     input.dispatchEvent(new Event('change'));
   }
 
@@ -1789,7 +1789,7 @@ function wrapWithHijriPicker(inputId) {
     monthEl.value = h.m;
     dayEl.value = h.d;
     const gDate = new Date(Date.UTC(y, m-1, d));
-    hint.textContent = 'الميلادي: ' + gDate.toLocaleDateString('ar-SA-u-nu-latn', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+    hint.textContent = 'الميلادي: ' + gDate.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
   }
 
   dayEl.addEventListener('change', fromHijri);
