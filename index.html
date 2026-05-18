@@ -1320,9 +1320,14 @@ function renderHomeTasks(dayIdx) {
 
   if (chip) {
     const allDone = totalCount > 0 && doneCount === totalCount;
-    chip.textContent = doneCount + ' / ' + totalCount;
+    chip.textContent = totalCount === 0 ? '— / —' : doneCount + ' / ' + totalCount;
     chip.className = 'home-tasks-chip' + (allDone ? ' all-done' : '');
   }
+
+  // Keep DOM in sync with _homeTasksOpen state
+  if (body) body.style.display = _homeTasksOpen ? 'flex' : 'none';
+  const chevron = $('homeTasksChevron');
+  if (chevron) chevron.classList.toggle('open', _homeTasksOpen);
 
   // Only render body if open
   if (!body || !_homeTasksOpen) return;
@@ -1927,6 +1932,7 @@ function toggleBinary(taskId, xp, scope = 'base') {
   saveState();
   if (next === 100) showXPToast(xpToastText(xp, scope));
   updateQuestUI();
+  renderHomeTasks(viewDayIdx);
 }
 
 function setPartial(taskId, xp, pct, scope = 'base') {
