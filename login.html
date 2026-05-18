@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F2E8D2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>اهلا و سهلا — البداية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2E8D2; --bg2: #E8DCBF; --panel: #FBF7EC; --border: #C0963A;
+    --gold: #5A3608; --gold-light: #3A2004; --gold-dim: #8A6218;
+    --cream: #F5EDD8; --teal: #0F5A4A; --text: #1A1008; --text-dim: #4A3020;
+    --radius: 8px; --number-font: 'Inter', 'Segoe UI', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; background: var(--bg); color: var(--text);
+    font-family: 'Amiri', serif; font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='%239A7220' stroke-width='0.4' opacity='0.22'%3E%3Cpolygon points='40,5 75,27.5 75,52.5 40,75 5,52.5 5,27.5'/%3E%3Cpolygon points='40,15 65,30 65,50 40,65 15,50 15,30'/%3E%3Cline x1='40' y1='5' x2='40' y2='15'/%3E%3Cline x1='75' y1='27.5' x2='65' y2='30'/%3E%3Cline x1='75' y1='52.5' x2='65' y2='50'/%3E%3Cline x1='40' y1='75' x2='40' y2='65'/%3E%3Cline x1='5' y1='52.5' x2='15' y2='50'/%3E%3Cline x1='5' y1='27.5' x2='15' y2='30'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .login-card {
+    position: relative; width: 100%; max-width: 380px; text-align: center;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px 24px; overflow: hidden;
+  }
+  .login-card::before {
+    content: ''; position: absolute; top: 0; right: 0; left: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+  .login-icon { font-size: 48px; margin-bottom: 12px; }
+  .login-title { font-family: 'Scheherazade New', serif; font-size: 26px; color: var(--gold-light); margin-bottom: 8px; }
+  .login-sub { font-size: 15px; color: var(--text-dim); margin-bottom: 28px; }
+  .setup-label { font-size: 15px; color: var(--text-dim); margin-bottom: 8px; text-align: right; }
+  .setup-input {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-family: 'Amiri', serif; font-size: 16px; font-weight: 700;
+    padding: 12px 14px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; text-align: right;
+  }
+  input[type="date"].setup-input { display: none; }
+  .setup-input:focus, .hijri-sel:focus { border-color: var(--gold-dim); }
+  .hijri-picker { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .hijri-selects { display: flex; gap: 6px; direction: rtl; }
+  .hijri-sel {
+    flex: 1; min-width: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-family: var(--number-font), 'Amiri', serif; font-size: 14px; font-weight: 700;
+    padding: 8px 6px; outline: none; text-align: center; appearance: none; -webkit-appearance: none; cursor: pointer;
+  }
+  .hijri-greg-hint { font-size: 11px; color: var(--text-dim); opacity: 0.55; text-align: right; direction: rtl; padding-right: 2px; }
+  .setup-start {
+    width: 100%; background: linear-gradient(135deg, var(--gold-dim), #9a7020); border: 1px solid var(--gold);
+    border-radius: var(--radius); color: var(--cream); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700;
+    padding: 14px; cursor: pointer; transition: all 0.3s;
+  }
+  .setup-start:hover, .setup-start:focus-visible { box-shadow: 0 4px 20px rgba(200,151,42,0.3); }
+</style>
+</head>
+<body>
+<main class="login-card">
+  <div class="login-icon">🕌</div>
+  <div class="login-title">اهلا و سهلا</div>
+  <div class="login-sub">بسم الله — ابدأ رحلة الحج</div>
+  <div class="setup-label">اسمك</div>
+  <input type="text" class="setup-input" id="nameInput" placeholder="مثال: عبدالله الحازمي" maxlength="40">
+  <div class="setup-label">تاريخ أول يوم عمل</div>
+  <input type="date" class="setup-input" id="startDateInput">
+  <div class="setup-label">كم يوم تشتغل؟</div>
+  <input type="number" class="setup-input" id="totalDaysInput" value="12" min="1" max="30">
+  <button class="setup-start" onclick="startSession()">ابدأ المهمة ←</button>
+</main>
+
+<script>
+const STORAGE_KEY = 'hajj_rpg_v3';
+const DHIKR_DISMISS_KEY = 'hajj_rpg_dhikr_dismissed_v1';
+const HIJRI_MONTHS = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+const _hijriFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year:'numeric', month:'numeric', day:'numeric' });
+const $ = id => document.getElementById(id);
+
+function validTotalDays(value) {
+  const days = parseInt(value, 10);
+  return days >= 1 && days <= 30 ? days : null;
+}
+
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function gregorianToHijri(date) {
+  const parts = _hijriFmt.formatToParts(date);
+  const p = {};
+  parts.forEach(({type, value}) => { if (type !== 'literal') p[type] = parseInt(value, 10); });
+  return { y: p.year, m: p.month, d: p.day };
+}
+
+function hijriToGregorian(hy, hm, hd) {
+  const approxGY = Math.round((hy - 1) * 0.9702 + 622);
+  let cur = new Date(Date.UTC(approxGY - 1, 0, 1));
+  const end = new Date(Date.UTC(approxGY + 2, 11, 31));
+  while (cur <= end) {
+    const h = gregorianToHijri(cur);
+    if (h.y === hy && h.m === hm && h.d === hd) return cur.toISOString().slice(0, 10);
+    cur = new Date(cur.getTime() + 86400000);
+  }
+  return null;
+}
+
+function wrapWithHijriPicker(inputId) {
+  const input = $(inputId);
+  if (!input || input._hijriWrapped) return;
+  input._hijriWrapped = true;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'hijri-picker';
+  const row = document.createElement('div');
+  row.className = 'hijri-selects';
+  const make = cls => { const s = document.createElement('select'); s.className = 'hijri-sel ' + cls; return s; };
+  const dayEl = make('hijri-day');
+  const monthEl = make('hijri-month');
+  const yearEl = make('hijri-year');
+
+  for (let i = 1; i <= 30; i++) dayEl.appendChild(new Option(i, i));
+  HIJRI_MONTHS.forEach((name, i) => monthEl.appendChild(new Option(name, i + 1)));
+  for (let y = 1440; y <= 1455; y++) yearEl.appendChild(new Option(y, y));
+
+  const hint = document.createElement('div');
+  hint.className = 'hijri-greg-hint';
+  row.append(dayEl, monthEl, yearEl);
+  wrapper.append(row, hint);
+  input.parentNode.insertBefore(wrapper, input);
+  wrapper.appendChild(input);
+
+  function syncHint(greg) {
+    const [gy, gm, gd] = greg.split('-').map(Number);
+    const gDate = new Date(Date.UTC(gy, gm - 1, gd));
+    hint.textContent = 'الميلادي: ' + gDate.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+  }
+
+  function fromHijri() {
+    let hy = +yearEl.value, hm = +monthEl.value, hd = +dayEl.value;
+    let greg = null;
+    while (hd >= 1 && !greg) { greg = hijriToGregorian(hy, hm, hd); if (!greg) hd--; }
+    if (!greg) return;
+    dayEl.value = hd;
+    input.value = greg;
+    syncHint(greg);
+  }
+
+  function fromGregorian(val) {
+    if (!val) return;
+    const [y, m, d] = val.split('-').map(Number);
+    const h = gregorianToHijri(new Date(Date.UTC(y, m - 1, d)));
+    yearEl.value = h.y;
+    monthEl.value = h.m;
+    dayEl.value = h.d;
+    syncHint(val);
+  }
+
+  dayEl.addEventListener('change', fromHijri);
+  monthEl.addEventListener('change', fromHijri);
+  yearEl.addEventListener('change', fromHijri);
+
+  if (input.value) fromGregorian(input.value);
+  else {
+    const h = gregorianToHijri(new Date());
+    yearEl.value = h.y; monthEl.value = h.m; dayEl.value = h.d;
+    fromHijri();
+  }
+}
+
+function startSession() {
+  const startDate = $('startDateInput').value;
+  const totalDays = validTotalDays($('totalDaysInput').value);
+  const name = $('nameInput').value.trim();
+  if (!startDate) { alert('اختار تاريخ البداية أولاً'); return; }
+  if (!totalDays) { alert('عدد الأيام لازم يكون بين 1 و30'); return; }
+  localStorage.removeItem(DHIKR_DISMISS_KEY);
+  saveState({
+    startDate,
+    totalDays,
+    name,
+    totalXP: 0,
+    streak: 0,
+    perfectDays: 0,
+    todayPhase: 'morning',
+    todayPhaseDayIdx: 0,
+    days: {},
+    todayChecks: {},
+    todayCheckTimestamps: {},
+    zoneRoundsDrafts: {},
+    evidenceDrafts: {},
+    customTasks: {},
+    dayCustomTasks: {},
+    hiddenTasks: [],
+    taskOverrides: {},
+    todayNA: {}
+  });
+  location.href = 'index.html';
+}
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const state = JSON.parse(saved);
+      if (state && state.startDate) {
+        location.replace('index.html');
+        return;
+      }
+    } catch {}
+  }
+  $('startDateInput').value = new Date().toISOString().slice(0, 10);
+  wrapWithHijriPicker('startDateInput');
+});
+</script>
+</body>
+</html>

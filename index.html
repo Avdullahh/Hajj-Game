@@ -85,6 +85,18 @@
   .today-action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
   .today-action-btn.close { background: rgba(15,90,74,0.12); border-color: var(--teal); color: var(--teal-light); }
 
+  /* HOME DHIKR */
+  .home-dhikr-panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .home-dhikr-panel::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--teal), transparent); }
+  .home-dhikr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .home-dhikr-title { flex: 1; color: var(--teal-light); font-family: 'Scheherazade New', serif; font-size: 18px; }
+  .home-dhikr-dismiss { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); font-family: var(--number-font); font-size: 13px; min-width: 34px; min-height: 34px; cursor: pointer; }
+  .home-dhikr-dismiss:hover, .home-dhikr-dismiss:focus-visible { border-color: var(--teal); color: var(--teal-light); }
+  .home-dhikr-list { display: flex; flex-direction: column; gap: 8px; }
+  .home-dhikr-item { background: rgba(42,122,106,0.06); border: 1px solid rgba(15,90,74,0.18); border-radius: 6px; padding: 8px 10px; }
+  .home-dhikr-text { font-size: 15px; line-height: 1.7; color: var(--text); }
+  .home-dhikr-source { margin-top: 3px; font-family: var(--number-font), 'Amiri', serif; font-size: 11px; color: var(--text-dim); }
+
   /* HOME TASKS PANEL */
   .home-tasks-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .home-tasks-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; user-select: none; transition: background 0.2s; }
@@ -264,11 +276,7 @@
   .particle { position: fixed; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-light); pointer-events: none; z-index: 1000; animation: particle-fly 1.2s ease-out forwards; }
   @keyframes particle-fly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; } }
 
-  /* SETUP */
-  .setup-screen { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .setup-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 32px 24px; width: 100%; max-width: 380px; text-align: center; }
-  .setup-title { font-family: 'Scheherazade New', serif; font-size: 26px; color: var(--gold-light); margin-bottom: 8px; }
-  .setup-sub { font-size: 15px; color: var(--text-dim); margin-bottom: 28px; }
+  /* SETTINGS FORM */
   .setup-label { font-size: 15px; color: var(--text-dim); margin-bottom: 8px; text-align: right; }
   .setup-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'Amiri', serif; font-size: 16px; padding: 12px 14px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; text-align: right; }
   input[type="date"].setup-input { display: none; }
@@ -436,21 +444,6 @@
 </head>
 <body>
 
-<div class="setup-screen" id="setupScreen">
-  <div class="setup-card">
-    <div style="font-size:48px;margin-bottom:12px">🕌</div>
-    <div class="setup-title">مشرف الزون</div>
-    <div class="setup-sub">بسم الله — ابدأ رحلة الحج</div>
-    <div class="setup-label">اسمك</div>
-    <input type="text" class="setup-input" id="nameInput" placeholder="مثال: عبدالله الحازمي" maxlength="40">
-    <div class="setup-label">تاريخ أول يوم عمل</div>
-    <input type="date" class="setup-input" id="startDateInput">
-    <div class="setup-label">كم يوم تشتغل؟</div>
-    <input type="number" class="setup-input" id="totalDaysInput" value="12" min="1" max="30">
-    <button class="setup-start" onclick="startSession()">ابدأ المهمة ←</button>
-  </div>
-</div>
-
 <div class="levelup-overlay" id="levelupOverlay">
   <div class="levelup-card">
     <span class="levelup-emoji" id="levelupEmoji">⭐</span>
@@ -522,30 +515,6 @@
   </div>
 </div>
 
-<div class="flow-modal" id="quickCheckModal" dir="rtl">
-  <div class="flow-card">
-    <div class="flow-title">تقييم سريع</div>
-    <div class="flow-question">
-      <div class="flow-question-label">سويت جولة؟</div>
-      <div class="flow-options" data-flow="quickRound">
-        <button class="flow-choice active" data-value="yes">إيه</button>
-        <button class="flow-choice" data-value="no">لا</button>
-      </div>
-    </div>
-    <div class="flow-question">
-      <div class="flow-question-label">فيه شيء يحتاج متابعة؟</div>
-      <div class="flow-options" data-flow="quickFollowup">
-        <button class="flow-choice" data-value="yes">إيه</button>
-        <button class="flow-choice active" data-value="no">لا</button>
-      </div>
-    </div>
-    <div class="flow-actions">
-      <button class="flow-secondary" onclick="closeFlowModal('quickCheckModal')">إلغاء</button>
-      <button class="flow-primary" onclick="submitQuickCheckModal()">تم</button>
-    </div>
-  </div>
-</div>
-
 <div class="flow-modal" id="closingModal" dir="rtl">
   <div class="flow-card">
     <div class="flow-title">إغلاق اليوم</div>
@@ -563,6 +532,7 @@
 
   <!-- HOME -->
   <div class="view active" id="view-home">
+    <div id="homeDhikrPanel"></div>
     <div class="panel char-header">
       <div class="char-avatar">🧔</div>
       <div class="char-name" id="charName" contenteditable="true" spellcheck="false" dir="auto"></div>
@@ -740,6 +710,7 @@ const LEVELS = [
 let state = {};
 let viewDayIdx = 0;
 const STORAGE_KEY = 'hajj_rpg_v3';
+const DHIKR_DISMISS_KEY = 'hajj_rpg_dhikr_dismissed_v1';
 
 function safeGetStorage(key) {
   try {
@@ -880,7 +851,6 @@ function clearActive(selector) {
 function controls(root, selectors) {
   return Object.fromEntries(Object.entries(selectors).map(([name, selector]) => [name, root.querySelector(selector)]));
 }
-function hideSetup() { $('setupScreen').style.display = 'none'; }
 function validTotalDays(value) {
   const days = parseInt(value, 10);
   return days >= 1 && days <= 30 ? days : null;
@@ -908,6 +878,19 @@ function escapeHtml(value) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[ch]));
 }
+
+const HOME_DHIKR = [
+  { text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ', source: 'البقرة 2:201' },
+  { text: 'رَبَّنَا لَا تُؤَاخِذْنَا إِنْ نَسِينَا أَوْ أَخْطَأْنَا', source: 'البقرة 2:286' },
+  { text: 'رَبِّ زِدْنِي عِلْمًا', source: 'طه 20:114' },
+  { text: 'رَبِّ اشْرَحْ لِي صَدْرِي ۝ وَيَسِّرْ لِي أَمْرِي ۝ وَاحْلُلْ عُقْدَةً مِنْ لِسَانِي ۝ يَفْقَهُوا قَوْلِي', source: 'طه 20:25-28' },
+  { text: 'لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ', source: 'الأنبياء 21:87' },
+  { text: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا', source: 'الفرقان 25:74' },
+  { text: 'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ', source: 'التوبة 9:129' },
+  { text: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ', source: 'أذكار الصباح والمساء' },
+  { text: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', source: 'صحيح مسلم' }
+];
+const DAILY_DHIKR_COUNT = 3;
 
 function initState(startDate, totalDays) {
   state = { startDate, totalDays: parseInt(totalDays), totalXP: 0, streak: 0, perfectDays: 0,
@@ -1230,6 +1213,40 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
 }
 
 // ── HOME ──
+function renderHomeDhikr() {
+  const container = $('homeDhikrPanel');
+  if (!container) return;
+  if (safeGetStorage(DHIKR_DISMISS_KEY) === '1') {
+    container.innerHTML = '';
+    return;
+  }
+  const dayIdx = Math.max(0, getTodayIndex());
+  const dailyDhikr = Array.from({ length: Math.min(DAILY_DHIKR_COUNT, HOME_DHIKR.length) }, (_, offset) =>
+    HOME_DHIKR[(dayIdx * DAILY_DHIKR_COUNT + offset) % HOME_DHIKR.length]
+  );
+  container.innerHTML = `
+    <div class="home-dhikr-panel" aria-label="أذكار وأدعية">
+      <div class="home-dhikr-head">
+        <div class="home-dhikr-title">أذكار وأدعية</div>
+        <button class="home-dhikr-dismiss" type="button" aria-label="إخفاء الأذكار">×</button>
+      </div>
+      <div class="home-dhikr-list">
+        ${dailyDhikr.map(item => `
+          <div class="home-dhikr-item">
+            <div class="home-dhikr-text">${escapeHtml(item.text)}</div>
+            <div class="home-dhikr-source">${escapeHtml(item.source)}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  const dismissBtn = container.querySelector('.home-dhikr-dismiss');
+  if (dismissBtn) dismissBtn.addEventListener('click', dismissHomeDhikr);
+}
+
+function dismissHomeDhikr() {
+  safeSetStorage(DHIKR_DISMISS_KEY, '1');
+  renderHomeDhikr();
+}
+
 let _homeZoneOpen = false;
 
 function toggleHomeZonePanel() {
@@ -1331,6 +1348,7 @@ function renderHomeEvidence(dayIdx) {
 
 function updateHomeUI() {
   syncTodayPhase(true);
+  renderHomeDhikr();
   const xp = state.totalXP||0;
   const { current, next } = getLevelData(xp);
   const xpNext = $('xpNext');
@@ -1576,27 +1594,11 @@ function submitNoteModal() {
   const selected = document.querySelector('#noteCategoryRow .note-cat-btn.active');
   const category = selected?.dataset.category || 'أخرى';
   const text = ($('noteTextInput')?.value || '').trim();
-  const drafts = ensureObject(state, 'evidenceDrafts');
-  ensureArray(drafts, currentDayIdx).push({ id: makeId('ev_'), category, text, timestamp: new Date().toISOString() });
+  if (!text) { $('noteTextInput')?.focus(); return; }
+  addEvidenceDraft(currentDayIdx, category, text);
   saveState();
   closeFlowModal('noteModal');
   updateAllUI();
-}
-
-function openQuickCheckModal() {
-  if (isDaySubmitted(getTodayIndex())) return;
-  openFlowModal('quickCheckModal');
-}
-
-function submitQuickCheckModal() {
-  const currentDayIdx = getTodayIndex();
-  const needsNote = flowValue('quickFollowup') === 'yes';
-  if (flowValue('quickRound') === 'yes') {
-    addZoneRound(currentDayIdx, 'جولة سريعة', 80, '', 'أخرى');
-  }
-  closeFlowModal('quickCheckModal');
-  updateAllUI();
-  if (needsNote) openNoteModal();
 }
 
 function getTodayLastUpdateLabel(dayIdx) {
@@ -1739,23 +1741,25 @@ function prevClosingStep() {
 }
 
 function nextClosingStep() {
-  const currentDayIdx = getTodayIndex();
-  if (closingStep === 1) {
-    addZoneRound(currentDayIdx, 'إغلاق اليوم', closingDraft.readiness, '', 'أخرى');
-  } else if (closingStep === 2) {
+  if (closingStep === 2) {
     closingDraft.highlight = ($('closingHighlightInput')?.value || '').trim();
-    const drafts = ensureObject(state, 'evidenceDrafts');
-    ensureArray(drafts, currentDayIdx).push({ id: makeId('ev_'), category: 'أثر واضح', text: closingDraft.highlight || 'أهم شيء اليوم', timestamp: new Date().toISOString() });
-    saveState();
   }
   closingStep++;
   renderClosingStep();
-  updateAllUI();
 }
 
 function submitClosingDay() {
   const currentDayIdx = getTodayIndex();
   viewDayIdx = currentDayIdx;
+  const drafts = ensureObject(state, 'zoneRoundsDrafts');
+  ensureArray(drafts, currentDayIdx).push({
+    id: makeId('round_'),
+    name: 'إغلاق اليوم',
+    type: 'أخرى',
+    readiness: normalizePct(closingDraft.readiness),
+    note: ''
+  });
+  addEvidenceDraft(currentDayIdx, 'أثر واضح', closingDraft.highlight || 'أهم شيء اليوم');
   state.todayPhase = 'done';
   state.todayPhaseDayIdx = currentDayIdx;
   saveState();
@@ -1767,11 +1771,19 @@ function getEvidenceForDay(idx) {
   return getDayCollection(idx, 'evidence', 'evidenceDrafts');
 }
 
-function addEvidence(dayIdx, category, text) {
+function addEvidenceDraft(dayIdx, category, text) {
+  const cleanText = (text || '').trim();
+  if (!cleanText) return false;
   const drafts = ensureObject(state, 'evidenceDrafts');
-  ensureArray(drafts, dayIdx).push({ id: makeId('ev_'), category, text, timestamp: new Date().toISOString() });
-  saveState();
-  updateQuestUI();
+  ensureArray(drafts, dayIdx).push({ id: makeId('ev_'), category, text: cleanText, timestamp: new Date().toISOString() });
+  return true;
+}
+
+function addEvidence(dayIdx, category, text) {
+  if (addEvidenceDraft(dayIdx, category, text)) {
+    saveState();
+    updateQuestUI();
+  }
 }
 
 function deleteEvidence(dayIdx, evidenceId) {
@@ -2283,7 +2295,8 @@ function buildDayPicker() {
 // ── SETTINGS ──
 function resetData() {
   if (!confirm('سيتم مسح كل بيانات الموسم نهائياً. هل أنت متأكد؟')) return;
-  localStorage.removeItem('hajj_rpg_v3');
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(DHIKR_DISMISS_KEY);
   location.reload();
 }
 
@@ -2405,19 +2418,6 @@ function showView(name) {
   if (name==='log')   updateLogUI();
 }
 
-// ── SETUP ──
-function startSession() {
-  const d=$('startDateInput').value;
-  const n=$('totalDaysInput').value;
-  const name=$('nameInput').value.trim();
-  if(!d){alert('اختار تاريخ البداية أولاً');return;}
-  initState(d,n);
-  state.name = name;
-  saveState();
-  hideSetup();
-  viewDayIdx=getTodayIndex(); updateAllUI(); setTimeout(maybeShowMorningModal, 0);
-}
-
 // ── HIJRI CALENDAR ──
 const HIJRI_MONTHS = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
 const _hijriFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year:'numeric', month:'numeric', day:'numeric' });
@@ -2510,14 +2510,13 @@ function wrapWithHijriPicker(inputId) {
 }
 
 window.onload = () => {
-  $('startDateInput').value = new Date().toISOString().slice(0,10);
-  wrapWithHijriPicker('startDateInput');
   wrapWithHijriPicker('editStartDate');
   if(loadState()&&state.startDate){
     migratePhantomXP();
-    hideSetup();
     syncTodayPhase(true);
     viewDayIdx=getTodayIndex(); updateAllUI(); setTimeout(maybeShowMorningModal, 0);
+  } else {
+    location.replace('login.html');
   }
 };
   if ('serviceWorker' in navigator) {
