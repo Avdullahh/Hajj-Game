@@ -207,7 +207,12 @@
   .setup-sub { font-size: 15px; color: var(--text-dim); margin-bottom: 28px; }
   .setup-label { font-size: 15px; color: var(--text-dim); margin-bottom: 8px; text-align: right; }
   .setup-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'Amiri', serif; font-size: 16px; padding: 12px 14px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; text-align: right; }
-  input[type="date"].setup-input { width: auto; min-width: 160px; font-size: 14px; padding: 8px 10px; }
+  input[type="date"].setup-input { display: none; }
+  .hijri-picker { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .hijri-selects { display: flex; gap: 6px; direction: rtl; }
+  .hijri-sel { flex: 1; min-width: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'Amiri', serif; font-size: 14px; padding: 8px 6px; outline: none; transition: border-color 0.2s; text-align: center; appearance: none; -webkit-appearance: none; cursor: pointer; }
+  .hijri-sel:focus { border-color: var(--gold-dim); }
+  .hijri-greg-hint { font-size: 11px; color: var(--text-dim); opacity: 0.55; text-align: right; direction: rtl; padding-right: 2px; }
   .setup-input:focus { border-color: var(--gold-dim); }
   .setup-start { width: 100%; background: linear-gradient(135deg, var(--gold-dim), #9a7020); border: 1px solid var(--gold); border-radius: var(--radius); color: var(--cream); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; }
   .setup-start:hover { box-shadow: 0 4px 20px rgba(200,151,42,0.3); }
@@ -722,8 +727,12 @@ function isDaySubmitted(idx) { return !!(state.days[idx]?.done); }
 
 function getDateForDay(idx) {
   if (!state.startDate) return '';
-  const d = new Date(state.startDate); d.setDate(d.getDate()+idx);
-  return d.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'short', month:'short', day:'numeric' });
+  const [y,m,d] = state.startDate.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m-1, d+idx));
+  const hijri = gregorianToHijri(date);
+  const hLabel = hijri.d + ' ' + HIJRI_MONTHS[hijri.m-1] + ' ' + hijri.y;
+  const gLabel = date.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' });
+  return hLabel + ' · ' + gLabel;
 }
 
 function getBaseDayMaxXP() {
@@ -1633,7 +1642,7 @@ function updateLogUI() {
   const eDate = $('editStartDate');
   const eDays = $('editTotalDays');
   const eName = $('editName');
-  if (eDate) eDate.value = state.startDate || '';
+  if (eDate) { eDate.value = state.startDate || ''; eDate._syncHijri?.(); }
   if (eDays) eDays.value = state.totalDays || '';
   if (eName) eName.value = state.name || '';
   const c = $('logContainer');
@@ -1706,8 +1715,101 @@ function startSession() {
   viewDayIdx=getTodayIndex(); updateAllUI();
 }
 
+// ── HIJRI CALENDAR ──
+const HIJRI_MONTHS = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+const _hijriFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year:'numeric', month:'numeric', day:'numeric' });
+
+function gregorianToHijri(date) {
+  const parts = _hijriFmt.formatToParts(date);
+  const p = {};
+  parts.forEach(({type, value}) => { if (type !== 'literal') p[type] = parseInt(value, 10); });
+  return { y: p.year, m: p.month, d: p.day };
+}
+
+function hijriToGregorian(hy, hm, hd) {
+  const approxGY = Math.round((hy - 1) * 0.9702 + 622);
+  let cur = new Date(Date.UTC(approxGY - 1, 0, 1));
+  const end = new Date(Date.UTC(approxGY + 2, 11, 31));
+  while (cur <= end) {
+    const h = gregorianToHijri(cur);
+    if (h.y === hy && h.m === hm && h.d === hd) return cur.toISOString().slice(0, 10);
+    cur = new Date(cur.getTime() + 86400000);
+  }
+  return null;
+}
+
+function wrapWithHijriPicker(inputId) {
+  const input = $(inputId);
+  if (!input || input._hijriWrapped) return;
+  input._hijriWrapped = true;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'hijri-picker';
+
+  const row = document.createElement('div');
+  row.className = 'hijri-selects';
+
+  const make = (cls) => { const s = document.createElement('select'); s.className = 'hijri-sel ' + cls; return s; };
+
+  const dayEl   = make('hijri-day');
+  const monthEl = make('hijri-month');
+  const yearEl  = make('hijri-year');
+
+  for (let i = 1; i <= 30; i++) { const o = new Option(i, i); dayEl.appendChild(o); }
+  HIJRI_MONTHS.forEach((n, i) => { const o = new Option(n, i + 1); monthEl.appendChild(o); });
+  for (let y = 1440; y <= 1455; y++) { const o = new Option(y, y); yearEl.appendChild(o); }
+
+  row.append(dayEl, monthEl, yearEl);
+
+  const hint = document.createElement('div');
+  hint.className = 'hijri-greg-hint';
+
+  wrapper.append(row, hint);
+  input.parentNode.insertBefore(wrapper, input);
+  wrapper.appendChild(input);
+
+  function fromHijri() {
+    let hy = +yearEl.value, hm = +monthEl.value, hd = +dayEl.value;
+    let greg = null;
+    while (hd >= 1 && !greg) { greg = hijriToGregorian(hy, hm, hd); if (!greg) hd--; }
+    if (!greg) return;
+    dayEl.value = hd;
+    input.value = greg;
+    const [gy, gm, gd] = greg.split('-').map(Number);
+    const gDate = new Date(Date.UTC(gy, gm-1, gd));
+    hint.textContent = 'الميلادي: ' + gDate.toLocaleDateString('ar-SA-u-nu-latn', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+    input.dispatchEvent(new Event('change'));
+  }
+
+  function fromGregorian(val) {
+    if (!val) return;
+    const [y, m, d] = val.split('-').map(Number);
+    const h = gregorianToHijri(new Date(Date.UTC(y, m-1, d)));
+    yearEl.value = h.y;
+    monthEl.value = h.m;
+    dayEl.value = h.d;
+    const gDate = new Date(Date.UTC(y, m-1, d));
+    hint.textContent = 'الميلادي: ' + gDate.toLocaleDateString('ar-SA-u-nu-latn', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+  }
+
+  dayEl.addEventListener('change', fromHijri);
+  monthEl.addEventListener('change', fromHijri);
+  yearEl.addEventListener('change', fromHijri);
+
+  input._syncHijri = () => fromGregorian(input.value);
+
+  if (input.value) fromGregorian(input.value);
+  else {
+    const t = gregorianToHijri(new Date());
+    yearEl.value = t.y; monthEl.value = t.m; dayEl.value = t.d;
+    fromHijri();
+  }
+}
+
 window.onload = () => {
-  $('startDateInput').value=new Date().toISOString().slice(0,10);
+  $('startDateInput').value = new Date().toISOString().slice(0,10);
+  wrapWithHijriPicker('startDateInput');
+  wrapWithHijriPicker('editStartDate');
   if(loadState()&&state.startDate){
     migratePhantomXP();
     hideSetup();
