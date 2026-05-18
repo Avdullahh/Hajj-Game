@@ -1366,12 +1366,7 @@ function renderHomeTasks(dayIdx) {
       row.append(chk, txt);
 
       if (!submitted && isToday) {
-        if (isNA) {
-          const undo = el('button', 'home-task-na-btn', '↩');
-          undo.title = 'استعد';
-          undo.onclick = e => { e.stopPropagation(); clearTaskNA(task.id); renderHomeTasks(dayIdx); updateHomeUI(); };
-          row.appendChild(undo);
-        } else {
+        if (!isNA) {
           const naBtn = el('button', 'home-task-na-btn', '—');
           naBtn.title = 'لا ينطبق';
           naBtn.onclick = e => { e.stopPropagation(); openNAPrompt(task.id); };
@@ -1813,18 +1808,8 @@ function buildBinaryItem(task, isDone, pillar, submitted) {
   const xpSpan = el('span', 'task-xp', '+' + task.xp);
   item.append(chk, copy, xpSpan);
 
-  if (!submitted) {
-    if (isNA) {
-      const undoBtn = el('button', 'task-action-btn', '↩');
-      undoBtn.title = 'استعد للمهمة';
-      undoBtn.style.color = 'var(--gold-dim)';
-      undoBtn.onclick = () => { clearTaskNA(task.id); updateAllUI(); };
-      const actions = el('div', 'task-actions');
-      actions.appendChild(undoBtn);
-      item.appendChild(actions);
-    } else {
-      item.appendChild(buildActionBtns(task, pillar, item));
-    }
+  if (!submitted && !isNA) {
+    item.appendChild(buildActionBtns(task, pillar, item));
   }
   return item;
 }
