@@ -121,9 +121,6 @@
   .home-zone-add:hover { background: rgba(42,122,106,0.28); }
 
   /* HOME EVIDENCE MINI PANEL */
-  .home-evidence-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-top: 10px; }
-  .home-evidence-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  .home-evidence-title { font-size: 14px; font-weight: 700; color: var(--text); }
   .home-evidence-count { font-size: 12px; color: var(--gold-dim); }
   .home-evidence-hint { font-size: 12px; color: var(--text-dim); line-height: 1.4; margin-bottom: 10px; }
   .home-evidence-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
@@ -616,7 +613,14 @@
         <div class="home-zone-body" id="homeZoneBody" style="display:none"></div>
       </div>
       <!-- HOME EVIDENCE PANEL -->
-      <div id="homeEvidencePanel"></div>
+      <div class="home-zone-panel" id="homeEvidencePanel">
+        <div class="home-zone-header" onclick="toggleHomeEvidencePanel()">
+          <span class="home-zone-title">🏅 دليل اليوم</span>
+          <span class="home-evidence-count" id="homeEvidenceCount"></span>
+          <span class="home-zone-chevron" id="homeEvidenceChevron">▼</span>
+        </div>
+        <div class="home-zone-body" id="homeEvidenceBody" style="display:none"></div>
+      </div>
       <div class="today-action-row">
         <button class="today-action-btn" id="homeNoteBtn" onclick="openNoteModal()">+ ملاحظة</button>
         <button class="today-action-btn" id="homeQuickBtn" onclick="openQuickCheckModal()">تقييم سريع</button>
@@ -1301,31 +1305,40 @@ function renderHomeZonePanel(dayIdx) {
   if (chev) chev.classList.toggle('open', _homeZoneOpen);
 }
 
+let _homeEvidenceOpen = false;
+
+function toggleHomeEvidencePanel() {
+  _homeEvidenceOpen = !_homeEvidenceOpen;
+  const body = $('homeEvidenceBody');
+  const chev = $('homeEvidenceChevron');
+  if (body) body.style.display = _homeEvidenceOpen ? 'flex' : 'none';
+  if (chev) chev.classList.toggle('open', _homeEvidenceOpen);
+}
+
 function renderHomeEvidence(dayIdx) {
-  const panel = $('homeEvidencePanel');
-  if (!panel) return;
+  const body = $('homeEvidenceBody');
+  const countEl = $('homeEvidenceCount');
+  if (!body) return;
   const submitted = isDaySubmitted(dayIdx);
   const isToday = dayIdx === getTodayIndex();
   const entries = getEvidenceForDay(dayIdx);
-  const box = el('div', 'home-evidence-panel');
-  const head = el('div', 'home-evidence-head');
-  const title = el('div', 'home-evidence-title', '🏅 دليل اليوم');
-  const count = el('div', 'home-evidence-count', entries.length ? entries.length + ' إدخال' : '');
-  head.append(title, count);
+  if (countEl) countEl.textContent = entries.length ? entries.length + ' إدخال' : '';
+  body.innerHTML = '';
   const hint = el('div', 'home-evidence-hint', 'سجّل ما يستحق التوثيق من أحداث اليوم. لا تؤثر على XP.');
-  box.append(head, hint);
+  body.appendChild(hint);
   if (entries.length) {
     const list = el('div', 'home-evidence-list');
     entries.forEach(e => list.appendChild(buildEvidenceCard(e, dayIdx, submitted)));
-    box.appendChild(list);
+    body.appendChild(list);
   }
   if (!submitted && isToday) {
     const addBtn = el('button', 'home-evidence-add', '+ أضف ملاحظة');
     addBtn.onclick = openNoteModal;
-    box.appendChild(addBtn);
+    body.appendChild(addBtn);
   }
-  panel.innerHTML = '';
-  panel.appendChild(box);
+  body.style.display = _homeEvidenceOpen ? 'flex' : 'none';
+  const chev = $('homeEvidenceChevron');
+  if (chev) chev.classList.toggle('open', _homeEvidenceOpen);
 }
 
 function updateHomeUI() {
