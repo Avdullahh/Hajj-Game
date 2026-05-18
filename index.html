@@ -760,7 +760,7 @@ function normalizeLoadedState() {
   state.totalXP = Number.isFinite(+state.totalXP) ? +state.totalXP : 0;
   state.streak = Number.isFinite(+state.streak) ? +state.streak : 0;
   state.perfectDays = Number.isFinite(+state.perfectDays) ? +state.perfectDays : 0;
-  ['days', 'todayChecks', 'todayCheckTimestamps', 'zoneRoundsDrafts', 'evidenceDrafts', 'customTasks', 'dayCustomTasks', 'taskOverrides'].forEach(key => {
+  ['days', 'todayChecks', 'todayCheckTimestamps', 'zoneRoundsDrafts', 'evidenceDrafts', 'customTasks', 'dayCustomTasks', 'taskOverrides', 'todayNA'].forEach(key => {
     if (!state[key] || typeof state[key] !== 'object' || Array.isArray(state[key])) state[key] = {};
   });
   if (!Array.isArray(state.hiddenTasks)) state.hiddenTasks = [];
@@ -825,7 +825,7 @@ function escapeHtml(value) {
 function initState(startDate, totalDays) {
   state = { startDate, totalDays: parseInt(totalDays), totalXP: 0, streak: 0, perfectDays: 0,
     todayPhase: 'morning', todayPhaseDayIdx: 0,
-    days: {}, todayChecks: {}, todayCheckTimestamps: {}, zoneRoundsDrafts: {}, evidenceDrafts: {}, customTasks: {}, dayCustomTasks: {}, hiddenTasks: [], taskOverrides: {} };
+    days: {}, todayChecks: {}, todayCheckTimestamps: {}, zoneRoundsDrafts: {}, evidenceDrafts: {}, customTasks: {}, dayCustomTasks: {}, hiddenTasks: [], taskOverrides: {}, todayNA: {} };
   saveState();
 }
 
@@ -842,6 +842,27 @@ function autoComplete(taskId, val = 100) {
   ensureObject(ensureObject(state, 'todayChecks'), currentDayIdx)[taskId] = val;
   ensureObject(ensureObject(state, 'todayCheckTimestamps'), currentDayIdx)[taskId] = new Date().toISOString();
   saveState();
+}
+
+function getNAMap(dayIdx) {
+  if (isDaySubmitted(dayIdx)) return state.days[dayIdx]?.naMap || {};
+  return (state.todayNA || {})[dayIdx] || {};
+}
+
+function isTaskNA(dayIdx, taskId) {
+  return !!(getNAMap(dayIdx)[taskId]);
+}
+
+function setTaskNA(taskId, reason) {
+  const dayIdx = getTodayIndex();
+  ensureObject(ensureObject(state, 'todayNA'), dayIdx)[taskId] = { reason };
+  saveState();
+}
+
+function clearTaskNA(taskId) {
+  const dayIdx = getTodayIndex();
+  const map = (state.todayNA || {})[dayIdx];
+  if (map) { delete map[taskId]; saveState(); }
 }
 
 function getPillars(dayIdx = viewDayIdx) {
@@ -931,9 +952,11 @@ function recomputeCurrentStreak() {
 }
 
 // ── XP for a day given checks ──
-function calcDayXP(checks, pillars) {
+function calcDayXP(checks, pillars, naMap) {
+  const na = naMap || {};
   let baseXP = 0, extraXP = 0, total = 0, fullDone = 0, baseTotal = 0, baseFullDone = 0;
   pillars.forEach(p => p.tasks.forEach(t => {
+    if (na[t.id]) return;
     total++;
     const v = getCheckValue(checks, t.id);
     const earned = earnedXP(t.xp, v);
@@ -1129,7 +1152,7 @@ function updateHomeUI() {
   $('statStreak').textContent = state.streak||0;
   $('statPerfect').textContent = state.perfectDays||0;
   const liveChecks = state.days[todayIdx]?.done ? null : ((state.todayChecks||{})[todayIdx]||{});
-  const liveExtra = liveChecks ? calcDayXP(liveChecks, getPillars(todayIdx)).extraXP : 0;
+  const liveExtra = liveChecks ? calcDayXP(liveChecks, getPillars(todayIdx), getNAMap(todayIdx)).extraXP : 0;
   const followupPoints = getSavedFollowupPoints() + liveExtra;
   $('statFollowup').textContent = followupPoints;
   $('xpMultiplier').textContent = 'مضاعف المتابعة ×' + getFollowupMultiplier(followupPoints).toFixed(3);
@@ -1338,7 +1361,7 @@ function renderClosingStep() {
     actions.innerHTML = `<button class="flow-secondary" onclick="prevClosingStep()">رجوع</button><button class="flow-primary" onclick="nextClosingStep()">عرض الملخص</button>`;
   } else {
     const checks = (state.todayChecks || {})[getTodayIndex()] || {};
-    const { xp, extraXP } = calcDayXP(checks, getPillars(getTodayIndex()));
+    const { xp, extraXP } = calcDayXP(checks, getPillars(getTodayIndex()), getNAMap(getTodayIndex()));
     const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
     const levelXP = Math.round(xp * multiplier);
     content.innerHTML = `<div class="closing-summary">نقاط اليوم<strong>${levelXP} XP${extraXP ? ' + ' + extraXP + ' متابعة' : ''}</strong></div>`;
@@ -1512,7 +1535,8 @@ function updateQuestUI() {
     container.appendChild(pillarDiv);
   });
 
-  const { xp, extraXP, perfect } = calcDayXP(checks, pillars);
+  const naMap = isDaySubmitted(viewDayIdx) ? (state.days[viewDayIdx]?.naMap||{}) : getNAMap(viewDayIdx);
+  const { xp, extraXP, perfect } = calcDayXP(checks, pillars, naMap);
   const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
   const levelXP = Math.round(xp * multiplier);
   $('bonusBanner').classList.toggle('unlocked', perfect);
@@ -1808,7 +1832,7 @@ function submitDay() {
   const validIds = new Set(pillars.flatMap(p => p.tasks.map(t => t.id)));
   const rawChecks = (state.todayChecks||{})[viewDayIdx]||{};
   const checks = Object.fromEntries(Object.entries(rawChecks).filter(([id]) => validIds.has(id)));
-  const { xp, activityXP, extraXP, perfect } = calcDayXP(checks, pillars);
+  const { xp, activityXP, extraXP, perfect } = calcDayXP(checks, pillars, getNAMap(viewDayIdx));
   const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
   const levelXP = Math.round(xp * multiplier);
 
@@ -1818,7 +1842,8 @@ function submitDay() {
   state.totalXP = (state.totalXP||0) + levelXP;
 
   const coreTasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.core);
-  const coreComplete = coreTasks.every(t => getCheckValue(checks, t.id) === 100);
+  const naMapSnapshot = getNAMap(viewDayIdx);
+  const coreComplete = coreTasks.every(t => naMapSnapshot[t.id] || getCheckValue(checks, t.id) === 100);
 
   const zoneRounds = cloneItems(getZoneRoundsForDay(viewDayIdx));
   const evidence = cloneItems(getEvidenceForDay(viewDayIdx));
@@ -1831,11 +1856,12 @@ function submitDay() {
     }))
   }));
   state.days[viewDayIdx] = {
-    done:true, tasks:{...checks}, zoneRounds, evidence, pillarsSnapshot,
+    done:true, naMap: { ...naMapSnapshot }, tasks:{...checks}, zoneRounds, evidence, pillarsSnapshot,
     xp: levelXP, baseXP: xp, activityXP: levelXP + extraXP, extraXP,
     multiplier, multiplierXP: levelXP - xp, perfect, coreComplete
   };
   delete state.todayChecks[viewDayIdx];
+  if (state.todayNA) delete state.todayNA[viewDayIdx];
   if (state.zoneRoundsDrafts) delete state.zoneRoundsDrafts[viewDayIdx];
   if (state.evidenceDrafts) delete state.evidenceDrafts[viewDayIdx];
   if (perfect) state.perfectDays = (state.perfectDays||0)+1;
