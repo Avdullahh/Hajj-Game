@@ -75,6 +75,14 @@
   .stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 8px; text-align: center; }
   .stat-value { font-family: 'Cinzel Decorative', cursive; font-size: 20px; color: var(--gold-light); display: block; }
   .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  #view-home .stats-row, #view-home .readiness-panel, #homeRoundsPanel, #view-home .home-cta { display: none; }
+  .today-dashboard { display: flex; flex-direction: column; gap: 14px; }
+  .today-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .today-action-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .today-action-btn { background: rgba(200,151,42,0.15); border: 1px solid var(--gold-dim); border-radius: var(--radius); color: var(--gold-light); font-family: 'Amiri', serif; font-size: 16px; font-weight: 700; padding: 11px 8px; cursor: pointer; transition: all 0.2s; }
+  .today-action-btn:hover, .today-action-btn:focus-visible, .today-action-btn:active { background: rgba(200,151,42,0.25); }
+  .today-action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .today-action-btn.close { background: rgba(15,90,74,0.12); border-color: var(--teal); color: var(--teal-light); }
 
   /* DAY NAV */
   .day-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
@@ -272,6 +280,29 @@
   .readiness-breakdown-chip { font-size: 12px; color: var(--text-dim); background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 2px 10px; }
   .readiness-breakdown-chip.has-data { color: var(--gold); border-color: var(--gold-dim); }
 
+  /* CHECK-IN FLOWS */
+  .flow-modal { position: fixed; inset: 0; background: rgba(26,16,8,0.62); z-index: 800; display: none; align-items: center; justify-content: center; padding: 18px; }
+  .flow-modal.show { display: flex; }
+  .flow-card { width: 100%; max-width: 430px; max-height: calc(100vh - 36px); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: right; direction: rtl; box-shadow: 0 18px 48px rgba(26,16,8,0.28); }
+  .flow-title { font-family: 'Scheherazade New', serif; font-size: 23px; font-weight: 700; color: var(--gold-light); margin-bottom: 14px; }
+  .flow-question { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
+  .flow-question-label { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+  .flow-options, .note-cat-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .flow-choice, .note-cat-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; color: var(--text-dim); font-family: 'Amiri', serif; font-size: 14px; padding: 6px 14px; cursor: pointer; }
+  .flow-choice.active, .note-cat-btn.active { background: rgba(15,90,74,0.14); border-color: var(--teal); color: var(--teal-light); font-weight: 700; }
+  .flow-input, .flow-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'Amiri', serif; font-size: 15px; padding: 9px 11px; outline: none; text-align: right; line-height: 1.5; }
+  .flow-textarea { min-height: 76px; resize: vertical; }
+  .flow-input:focus, .flow-textarea:focus { border-color: var(--teal); }
+  .flow-slider-row { display: flex; align-items: center; gap: 10px; }
+  .flow-slider-row input[type=range] { flex: 1; accent-color: var(--teal); }
+  .flow-slider-value { min-width: 42px; color: var(--gold-light); font-weight: 700; text-align: center; }
+  .flow-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .flow-primary, .flow-secondary { flex: 1; border-radius: 6px; font-family: 'Amiri', serif; font-size: 16px; padding: 10px 12px; cursor: pointer; }
+  .flow-primary { background: var(--gold-dim); border: 1px solid var(--gold); color: var(--cream); font-weight: 700; }
+  .flow-secondary { background: none; border: 1px solid var(--border); color: var(--text-dim); }
+  .closing-summary { background: rgba(15,90,74,0.10); border: 1px solid var(--teal); border-radius: var(--radius); padding: 12px; margin-top: 12px; color: var(--teal-light); }
+  .closing-summary strong { display: block; font-size: 20px; color: var(--gold-light); margin-top: 4px; }
+
   /* EVIDENCE */
   .evidence-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; }
   .evidence-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -360,7 +391,7 @@
     <div class="setup-sub">بسم الله — ابدأ رحلة الحج</div>
     <div class="setup-label">اسمك</div>
     <input type="text" class="setup-input" id="nameInput" placeholder="مثال: عبدالله الحازمي" maxlength="40">
-    <div class="setup-label">تاريخ أول يوم شغل</div>
+    <div class="setup-label">تاريخ أول يوم عمل</div>
     <input type="date" class="setup-input" id="startDateInput">
     <div class="setup-label">كم يوم تشتغل؟</div>
     <input type="number" class="setup-input" id="totalDaysInput" value="12" min="1" max="30">
@@ -374,6 +405,85 @@
     <div class="levelup-label">ترقيت لـ</div>
     <div class="levelup-title" id="levelupTitle">—</div>
     <button class="levelup-close" onclick="closeLevelup()">واصل</button>
+  </div>
+</div>
+
+<div class="flow-modal" id="morningModal" dir="rtl">
+  <div class="flow-card">
+    <div class="flow-title">بداية اليوم</div>
+    <div class="flow-question">
+      <div class="flow-question-label">ثبّت بداية يومك؟</div>
+      <div class="flow-options" data-flow="morningCheckin">
+        <button class="flow-choice active" data-value="yes">إيه</button>
+        <button class="flow-choice" data-value="no">لا</button>
+      </div>
+    </div>
+    <div class="flow-question">
+      <div class="flow-question-label">عرفت أولوياتك؟</div>
+      <div class="flow-options" data-flow="morningBriefing">
+        <button class="flow-choice active" data-value="yes">إيه</button>
+        <button class="flow-choice" data-value="no">لا</button>
+      </div>
+    </div>
+    <div class="flow-actions">
+      <button class="flow-primary" onclick="submitMorningModal()">ابدأ اليوم</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow-modal" id="noteModal" dir="rtl">
+  <div class="flow-card">
+    <div class="flow-title">ملاحظة جديدة</div>
+    <div class="flow-question">
+      <div class="flow-question-label">التصنيف</div>
+      <div class="note-cat-row" id="noteCategoryRow">
+        <button class="note-cat-btn active" data-category="ماء">ماء</button>
+        <button class="note-cat-btn" data-category="نظافة">نظافة</button>
+        <button class="note-cat-btn" data-category="زحام">زحام</button>
+        <button class="note-cat-btn" data-category="مساعدة">مساعدة</button>
+        <button class="note-cat-btn" data-category="أخرى">أخرى</button>
+      </div>
+    </div>
+    <div class="flow-question">
+      <div class="flow-question-label">تفاصيل مختصرة</div>
+      <input class="flow-input" id="noteTextInput" maxlength="100" placeholder="اختياري">
+    </div>
+    <div class="flow-actions">
+      <button class="flow-secondary" onclick="closeFlowModal('noteModal')">إلغاء</button>
+      <button class="flow-primary" onclick="submitNoteModal()">حفظ الملاحظة</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow-modal" id="quickCheckModal" dir="rtl">
+  <div class="flow-card">
+    <div class="flow-title">تقييم سريع</div>
+    <div class="flow-question">
+      <div class="flow-question-label">سويت جولة؟</div>
+      <div class="flow-options" data-flow="quickRound">
+        <button class="flow-choice active" data-value="yes">إيه</button>
+        <button class="flow-choice" data-value="no">لا</button>
+      </div>
+    </div>
+    <div class="flow-question">
+      <div class="flow-question-label">فيه شيء يحتاج متابعة؟</div>
+      <div class="flow-options" data-flow="quickFollowup">
+        <button class="flow-choice" data-value="yes">إيه</button>
+        <button class="flow-choice active" data-value="no">لا</button>
+      </div>
+    </div>
+    <div class="flow-actions">
+      <button class="flow-secondary" onclick="closeFlowModal('quickCheckModal')">إلغاء</button>
+      <button class="flow-primary" onclick="submitQuickCheckModal()">تم</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow-modal" id="closingModal" dir="rtl">
+  <div class="flow-card">
+    <div class="flow-title">إغلاق اليوم</div>
+    <div id="closingStepContent"></div>
+    <div class="flow-actions" id="closingActions"></div>
   </div>
 </div>
 
@@ -395,6 +505,27 @@
         <div class="xp-label"><span id="xpCurrent">0</span><span>نقاط الخبرة</span><span id="xpNext">—</span></div>
         <div class="xp-multiplier" id="xpMultiplier">مضاعف المتابعة ×1.000</div>
         <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="day-nav" id="homeDayNav">
+      <button class="day-nav-btn" id="homeDayPrevBtn" onclick="homeNavigateDay(-1)">→</button>
+      <div class="day-nav-center">
+        <div class="day-nav-label" id="homeDayNavLabel">اليوم 1</div>
+        <div class="day-nav-date" id="homeDayNavDate">—</div>
+        <div id="homeDayTodayBadge" class="day-today-badge" style="display:none">اليوم الحالي</div>
+      </div>
+      <button class="day-nav-btn" id="homeDayNextBtn" onclick="homeNavigateDay(1)">←</button>
+    </div>
+    <div class="panel today-dashboard">
+      <div class="today-stats-row">
+        <div class="stat-box"><span class="stat-value" id="homeReadinessPct">0%</span><div class="stat-label">جاهزية الموقع</div></div>
+        <div class="stat-box"><span class="stat-value" id="homeOpenNotes">0</span><div class="stat-label">الملاحظات المفتوحة</div></div>
+        <div class="stat-box"><span class="stat-value" id="homeLastUpdate">—</span><div class="stat-label">آخر تحديث</div></div>
+      </div>
+      <div class="today-action-row">
+        <button class="today-action-btn" id="homeNoteBtn" onclick="openNoteModal()">+ ملاحظة</button>
+        <button class="today-action-btn" id="homeQuickBtn" onclick="openQuickCheckModal()">تقييم سريع</button>
+        <button class="today-action-btn close" id="homeCloseBtn" onclick="openClosingFlow()">إغلاق اليوم</button>
       </div>
     </div>
     <div class="stats-row">
@@ -455,11 +586,11 @@
   <div class="view" id="view-log">
     <div class="panel">
       <div class="section-title">📋 سجل الموسم</div>
-      <div id="logContainer"><div class="empty">ما فيه أيام منتهية بعد</div></div>
+      <div id="logContainer"><div class="empty">ما فيه أيام منتهية</div></div>
     </div>
     <div class="panel">
       <div class="section-title">📝 ذاكرة الموسم</div>
-      <div id="memoryContainer"><div class="empty">ما فيه ملاحظات بعد</div></div>
+      <div id="memoryContainer"><div class="empty">ما فيه ملاحظات</div></div>
     </div>
     <div class="panel">
       <div class="section-title">⚙️ إعدادات الموسم</div>
@@ -469,7 +600,7 @@
           <input type="text" class="setup-input" id="editName" maxlength="40" style="margin-bottom:0">
         </div>
         <div>
-          <div class="setup-label" style="margin-bottom:6px">تاريخ أول يوم شغل</div>
+          <div class="setup-label" style="margin-bottom:6px">تاريخ أول يوم عمل</div>
           <input type="date" class="setup-input" id="editStartDate" style="margin-bottom:0">
         </div>
         <div>
@@ -520,7 +651,7 @@ const LEVELS = [
   { level: 7,  title: 'المشرف المتميز', emoji: '🏆', progress: 0.6333 },
   { level: 8,  title: 'مشرف النخبة',   emoji: '👑', progress: 0.7667 },
   { level: 9,  title: 'حارس الزون',     emoji: '🌟', progress: 0.9   },
-  { level: 10, title: 'أفضل موظف ⭐',   emoji: '🕌', progress: 1     },
+  { level: 10, title: 'حارس الحرم ⭐',   emoji: '🕌', progress: 1     },
 ];
 
 
@@ -634,10 +765,17 @@ function normalizeLoadedState() {
   state.totalXP = Number.isFinite(+state.totalXP) ? +state.totalXP : 0;
   state.streak = Number.isFinite(+state.streak) ? +state.streak : 0;
   state.perfectDays = Number.isFinite(+state.perfectDays) ? +state.perfectDays : 0;
-  ['days', 'todayChecks', 'zoneRoundsDrafts', 'evidenceDrafts', 'customTasks', 'dayCustomTasks', 'taskOverrides'].forEach(key => {
+  ['days', 'todayChecks', 'todayCheckTimestamps', 'zoneRoundsDrafts', 'evidenceDrafts', 'customTasks', 'dayCustomTasks', 'taskOverrides'].forEach(key => {
     if (!state[key] || typeof state[key] !== 'object' || Array.isArray(state[key])) state[key] = {};
   });
   if (!Array.isArray(state.hiddenTasks)) state.hiddenTasks = [];
+  if (!['morning','active','closing','done'].includes(state.todayPhase)) state.todayPhase = 'morning';
+  const todayIdx = getTodayIndex();
+  const phaseDayIdx = parseInt(state.todayPhaseDayIdx, 10);
+  state.todayPhaseDayIdx = Number.isFinite(phaseDayIdx) ? phaseDayIdx : todayIdx;
+  if (state.todayPhaseDayIdx === todayIdx && state.todayPhase === 'done' && !isDaySubmitted(todayIdx)) {
+    state.todayPhase = 'active';
+  }
 }
 function cloneItems(items) {
   return (items || []).map(item => ({ ...item }));
@@ -691,7 +829,8 @@ function escapeHtml(value) {
 
 function initState(startDate, totalDays) {
   state = { startDate, totalDays: parseInt(totalDays), totalXP: 0, streak: 0, perfectDays: 0,
-    days: {}, todayChecks: {}, zoneRoundsDrafts: {}, evidenceDrafts: {}, customTasks: {}, dayCustomTasks: {}, hiddenTasks: [], taskOverrides: {} };
+    todayPhase: 'morning', todayPhaseDayIdx: 0,
+    days: {}, todayChecks: {}, todayCheckTimestamps: {}, zoneRoundsDrafts: {}, evidenceDrafts: {}, customTasks: {}, dayCustomTasks: {}, hiddenTasks: [], taskOverrides: {} };
   saveState();
 }
 
@@ -701,6 +840,13 @@ function getCheckValue(checks, taskId) {
   if (v === undefined || v === false || v === null) return 0;
   if (v === true) return 100;
   return +v;
+}
+
+function autoComplete(taskId, val = 100) {
+  const currentDayIdx = getTodayIndex();
+  ensureObject(ensureObject(state, 'todayChecks'), currentDayIdx)[taskId] = val;
+  ensureObject(ensureObject(state, 'todayCheckTimestamps'), currentDayIdx)[taskId] = new Date().toISOString();
+  saveState();
 }
 
 function getPillars(dayIdx = viewDayIdx) {
@@ -721,6 +867,17 @@ function getTodayIndex() {
   const start = new Date(state.startDate); const today = new Date();
   start.setHours(0,0,0,0); today.setHours(0,0,0,0);
   return Math.max(0, Math.min(Math.floor((today-start)/86400000), state.totalDays-1));
+}
+function syncTodayPhase(persist = false) {
+  const todayIdx = getTodayIndex();
+  if (state.todayPhaseDayIdx !== todayIdx) {
+    state.todayPhaseDayIdx = todayIdx;
+    state.todayPhase = state.days?.[todayIdx]?.done ? 'done' : 'morning';
+    if (persist) saveState();
+  } else if (!['morning','active','closing','done'].includes(state.todayPhase)) {
+    state.todayPhase = state.days?.[todayIdx]?.done ? 'done' : 'morning';
+    if (persist) saveState();
+  }
 }
 function isViewingToday() { return viewDayIdx === getTodayIndex(); }
 function isDaySubmitted(idx) { return !!(state.days[idx]?.done); }
@@ -942,6 +1099,7 @@ function buildZoneReadinessPanel(dayIdx, submitted) {
 
 // ── HOME ──
 function updateHomeUI() {
+  syncTodayPhase(true);
   const xp = state.totalXP||0;
   const { current, next } = getLevelData(xp);
   const xpNext = $('xpNext');
@@ -970,17 +1128,39 @@ function updateHomeUI() {
     xpNext.textContent = 'MAX';
     xpBarFill.style.width = '100%';
   }
-  const d = getTodayIndex();
-  $('statDay').textContent = (d+1)+' / '+state.totalDays;
+  const todayIdx = getTodayIndex();
+  const d = viewDayIdx;
+  $('statDay').textContent = (todayIdx+1)+' / '+state.totalDays;
   $('statStreak').textContent = state.streak||0;
   $('statPerfect').textContent = state.perfectDays||0;
-  const liveChecks = state.days[d]?.done ? null : ((state.todayChecks||{})[d]||{});
-  const liveExtra = liveChecks ? calcDayXP(liveChecks, getPillars(d)).extraXP : 0;
+  const liveChecks = state.days[todayIdx]?.done ? null : ((state.todayChecks||{})[todayIdx]||{});
+  const liveExtra = liveChecks ? calcDayXP(liveChecks, getPillars(todayIdx)).extraXP : 0;
   const followupPoints = getSavedFollowupPoints() + liveExtra;
   $('statFollowup').textContent = followupPoints;
   $('xpMultiplier').textContent = 'مضاعف المتابعة ×' + getFollowupMultiplier(followupPoints).toFixed(3);
 
+  const homePrevBtn = $('homeDayPrevBtn');
+  const homeNextBtn = $('homeDayNextBtn');
+  const homeTodayBadge = $('homeDayTodayBadge');
+  if ($('homeDayNavLabel')) $('homeDayNavLabel').textContent = 'اليوم ' + (d + 1);
+  if ($('homeDayNavDate')) $('homeDayNavDate').textContent = getDateForDay(d);
+  if (homeTodayBadge) homeTodayBadge.style.display = isViewingToday() ? 'inline-block' : 'none';
+  if (homePrevBtn) homePrevBtn.disabled = d <= 0;
+  if (homeNextBtn) homeNextBtn.disabled = d >= state.totalDays - 1;
+
   const rPct = calcReadiness(getZoneRoundsForDay(d));
+  const homeReadinessPct = $('homeReadinessPct');
+  const homeOpenNotes = $('homeOpenNotes');
+  const homeLastUpdate = $('homeLastUpdate');
+  const homeNoteBtn = $('homeNoteBtn');
+  const homeQuickBtn = $('homeQuickBtn');
+  const homeCloseBtn = $('homeCloseBtn');
+  if (homeReadinessPct) homeReadinessPct.textContent = rPct + '%';
+  if (homeOpenNotes) homeOpenNotes.textContent = getEvidenceForDay(d).length;
+  if (homeLastUpdate) homeLastUpdate.textContent = getTodayLastUpdateLabel(d);
+  const locked = !isViewingToday() || isDaySubmitted(d) || state.todayPhase === 'done';
+  [homeNoteBtn, homeQuickBtn, homeCloseBtn].forEach(btn => { if (btn) btn.disabled = locked; });
+
   const rColor  = readinessColor(rPct);
   const rStatus = rPct >= 90 ? '🟢 جاهز جداً'     : rPct >= 70 ? '🟡 يحتاج متابعة'   : '🔴 يحتاج تصعيد';
   const readinessPct = $('readinessPct');
@@ -1018,13 +1198,200 @@ function renderHomeRounds(dayIdx) {
 // ── EVIDENCE ──
 const EVIDENCE_CATEGORIES = ['مبادرة', 'تواصل', 'حل مشكلة', 'متابعة', 'أثر واضح', 'أخرى'];
 
+function flowValue(name) {
+  const active = document.querySelector(`.flow-options[data-flow="${name}"] .flow-choice.active`);
+  return active ? active.dataset.value : 'no';
+}
+
+function bindFlowChoices() {
+  document.querySelectorAll('.flow-options, .note-cat-row').forEach(group => {
+    if (group._bound) return;
+    group._bound = true;
+    group.addEventListener('click', e => {
+      const btn = e.target.closest('.flow-choice, .note-cat-btn');
+      if (!btn || !group.contains(btn)) return;
+      group.querySelectorAll('.flow-choice, .note-cat-btn').forEach(item => item.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+
+function openFlowModal(id) {
+  bindFlowChoices();
+  const modal = $(id);
+  if (modal) modal.classList.add('show');
+}
+
+function closeFlowModal(id) {
+  const modal = $(id);
+  if (modal) modal.classList.remove('show');
+}
+
+function maybeShowMorningModal() {
+  syncTodayPhase(true);
+  if (state.todayPhase === 'morning' && !isDaySubmitted(getTodayIndex())) openFlowModal('morningModal');
+}
+
+function submitMorningModal() {
+  if (flowValue('morningCheckin') === 'yes') autoComplete('checkin', 100);
+  if (flowValue('morningBriefing') === 'yes') autoComplete('briefing', 100);
+  state.todayPhase = 'active';
+  state.todayPhaseDayIdx = getTodayIndex();
+  saveState();
+  closeFlowModal('morningModal');
+  updateAllUI();
+}
+
+function openNoteModal() {
+  if (isDaySubmitted(getTodayIndex())) return;
+  const input = $('noteTextInput');
+  if (input) input.value = '';
+  openFlowModal('noteModal');
+  setTimeout(() => input?.focus(), 0);
+}
+
+function submitNoteModal() {
+  const currentDayIdx = getTodayIndex();
+  const selected = document.querySelector('#noteCategoryRow .note-cat-btn.active');
+  const category = selected?.dataset.category || 'أخرى';
+  const text = ($('noteTextInput')?.value || '').trim();
+  const drafts = ensureObject(state, 'evidenceDrafts');
+  ensureArray(drafts, currentDayIdx).push({ id: makeId('ev_'), category, text, timestamp: new Date().toISOString() });
+  saveState();
+  autoComplete('log_note', 100);
+  closeFlowModal('noteModal');
+  updateAllUI();
+}
+
+function openQuickCheckModal() {
+  if (isDaySubmitted(getTodayIndex())) return;
+  openFlowModal('quickCheckModal');
+}
+
+function submitQuickCheckModal() {
+  const currentDayIdx = getTodayIndex();
+  const needsNote = flowValue('quickFollowup') === 'yes';
+  if (flowValue('quickRound') === 'yes') {
+    addZoneRound(currentDayIdx, 'جولة سريعة', 80, '', 'أخرى');
+    ['corridors', 'corridor_crowding', 'fridges', 'fridge_empty', 'cleaning', 'cleaning_weak'].forEach(id => autoComplete(id, 100));
+  }
+  closeFlowModal('quickCheckModal');
+  updateAllUI();
+  if (needsNote) openNoteModal();
+}
+
+function getTodayLastUpdateLabel(dayIdx) {
+  const stamps = [];
+  Object.values((state.todayCheckTimestamps || {})[dayIdx] || {}).forEach(ts => { if (ts) stamps.push(ts); });
+  getEvidenceForDay(dayIdx).forEach(item => { if (item.timestamp) stamps.push(item.timestamp); });
+  if (!stamps.length) return '—';
+  const last = stamps.map(ts => new Date(ts)).filter(d => !Number.isNaN(d.getTime())).sort((a, b) => b - a)[0];
+  return last ? last.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '—';
+}
+
+let closingStep = 1;
+let closingDraft = { readiness: 75, hasOpenNotes: 'yes', highlight: '' };
+
+function openClosingFlow() {
+  if (isDaySubmitted(getTodayIndex())) return;
+  state.todayPhase = 'closing';
+  state.todayPhaseDayIdx = getTodayIndex();
+  saveState();
+  closingStep = 1;
+  closingDraft = { readiness: calcReadiness(getZoneRoundsForDay(getTodayIndex())) || 75, hasOpenNotes: 'yes', highlight: '' };
+  renderClosingStep();
+  openFlowModal('closingModal');
+  updateHomeUI();
+}
+
+function renderClosingStep() {
+  const content = $('closingStepContent');
+  const actions = $('closingActions');
+  if (!content || !actions) return;
+  if (closingStep === 1) {
+    content.innerHTML = `
+      <div class="flow-question">
+        <div class="flow-question-label">كيف كانت جاهزية الموقع؟</div>
+        <div class="flow-slider-row">
+          <input id="closingReadinessSlider" type="range" min="0" max="100" value="${closingDraft.readiness}">
+          <span class="flow-slider-value" id="closingReadinessValue">${closingDraft.readiness}%</span>
+        </div>
+      </div>`;
+    actions.innerHTML = `<button class="flow-secondary" onclick="closeFlowModal('closingModal')">إلغاء</button><button class="flow-primary" onclick="nextClosingStep()">التالي</button>`;
+    const slider = $('closingReadinessSlider');
+    slider.oninput = () => {
+      closingDraft.readiness = normalizePct(slider.value);
+      $('closingReadinessValue').textContent = closingDraft.readiness + '%';
+    };
+  } else if (closingStep === 2) {
+    content.innerHTML = `
+      <div class="flow-question">
+        <div class="flow-question-label">فيه ملاحظات مفتوحة؟</div>
+        <div class="flow-options" data-flow="closingOpenNotes">
+          <button class="flow-choice${closingDraft.hasOpenNotes === 'yes' ? ' active' : ''}" data-value="yes">إيه</button>
+          <button class="flow-choice${closingDraft.hasOpenNotes === 'no' ? ' active' : ''}" data-value="no">لا</button>
+        </div>
+      </div>`;
+    actions.innerHTML = `<button class="flow-secondary" onclick="prevClosingStep()">رجوع</button><button class="flow-primary" onclick="nextClosingStep()">التالي</button>`;
+    bindFlowChoices();
+  } else if (closingStep === 3) {
+    content.innerHTML = `
+      <div class="flow-question">
+        <div class="flow-question-label">أهم شيء اليوم</div>
+        <textarea class="flow-textarea" id="closingHighlightInput" maxlength="160" placeholder="وش صار اليوم؟">${escapeHtml(closingDraft.highlight)}</textarea>
+      </div>`;
+    actions.innerHTML = `<button class="flow-secondary" onclick="prevClosingStep()">رجوع</button><button class="flow-primary" onclick="nextClosingStep()">عرض الملخص</button>`;
+  } else {
+    const checks = (state.todayChecks || {})[getTodayIndex()] || {};
+    const { xp, extraXP } = calcDayXP(checks, getPillars(getTodayIndex()));
+    const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
+    const levelXP = Math.round(xp * multiplier);
+    content.innerHTML = `<div class="closing-summary">نقاط اليوم<strong>${levelXP} XP${extraXP ? ' + ' + extraXP + ' متابعة' : ''}</strong></div>`;
+    actions.innerHTML = `<button class="flow-secondary" onclick="prevClosingStep()">رجوع</button><button class="flow-primary" onclick="submitClosingDay()">أغلق اليوم</button>`;
+  }
+}
+
+function prevClosingStep() {
+  if (closingStep > 1) closingStep--;
+  renderClosingStep();
+}
+
+function nextClosingStep() {
+  const currentDayIdx = getTodayIndex();
+  if (closingStep === 1) {
+    addZoneRound(currentDayIdx, 'إغلاق اليوم', closingDraft.readiness, '', 'أخرى');
+  } else if (closingStep === 2) {
+    closingDraft.hasOpenNotes = flowValue('closingOpenNotes');
+    if (closingDraft.hasOpenNotes === 'no') autoComplete('close_note', 100);
+  } else if (closingStep === 3) {
+    closingDraft.highlight = ($('closingHighlightInput')?.value || '').trim();
+    const drafts = ensureObject(state, 'evidenceDrafts');
+    ensureArray(drafts, currentDayIdx).push({ id: makeId('ev_'), category: 'أثر واضح', text: closingDraft.highlight || 'أهم شيء اليوم', timestamp: new Date().toISOString() });
+    saveState();
+    autoComplete('update', 100);
+  }
+  closingStep++;
+  renderClosingStep();
+  updateAllUI();
+}
+
+function submitClosingDay() {
+  const currentDayIdx = getTodayIndex();
+  viewDayIdx = currentDayIdx;
+  state.todayPhase = 'done';
+  state.todayPhaseDayIdx = currentDayIdx;
+  saveState();
+  closeFlowModal('closingModal');
+  submitDay();
+}
+
 function getEvidenceForDay(idx) {
   return getDayCollection(idx, 'evidence', 'evidenceDrafts');
 }
 
 function addEvidence(dayIdx, category, text) {
   const drafts = ensureObject(state, 'evidenceDrafts');
-  ensureArray(drafts, dayIdx).push({ id: makeId('ev_'), category, text });
+  ensureArray(drafts, dayIdx).push({ id: makeId('ev_'), category, text, timestamp: new Date().toISOString() });
   saveState();
   updateQuestUI();
 }
@@ -1054,7 +1421,7 @@ function buildEvidencePanel(dayIdx, submitted) {
   const box = el('div', 'evidence-box');
   const head = el('div', 'evidence-head');
   head.innerHTML = `<div class="evidence-title">🏅 دليل اليوم</div><div class="evidence-count">${entries.length ? entries.length + ' إدخال' : ''}</div>`;
-  const hint = el('div', 'evidence-hint', 'سجّل الأفعال التي تستحق التقدير لملف أفضل موظف. لا تؤثر على XP.');
+  const hint = el('div', 'evidence-hint', 'سجّل ما يستحق التوثيق من أحداث اليوم. لا تؤثر على XP.');
   box.append(head, hint);
   if (!submitted) {
     const form = el('div', 'evidence-form');
@@ -1492,6 +1859,7 @@ function submitDay() {
 function reopenDay() {
   const day = state.days[viewDayIdx];
   if (!day) return;
+  const todayIdx = getTodayIndex();
 
   // Reverse XP and stats
   state.totalXP = Math.max(0, (state.totalXP||0) - day.xp);
@@ -1508,6 +1876,12 @@ function reopenDay() {
   delete state.days[viewDayIdx];
   recomputeCurrentStreak();
 
+  // Reset phase so the home screen reflects the reopened state
+  if (+viewDayIdx === todayIdx) {
+    state.todayPhase = 'active';
+    state.todayPhaseDayIdx = todayIdx;
+  }
+
   saveState();
   updateAllUI();
 }
@@ -1519,6 +1893,14 @@ function navigateDay(d) {
   viewDayIdx = n;
   closeDayPicker();
   updateQuestUI();
+  updateHomeUI();
+}
+
+function homeNavigateDay(d) {
+  const n = viewDayIdx+d;
+  if (n<0||n>=state.totalDays) return;
+  viewDayIdx = n;
+  updateHomeUI();
 }
 
 function jumpToDay(idx) {
@@ -1584,7 +1966,7 @@ function buildMemoryView() {
   const mc = $('memoryContainer');
   if (!mc) return;
   const entries = Object.entries(state.days).filter(([,d]) => d && d.done);
-  if (!entries.length) { setEmpty(mc, 'ما فيه ملاحظات بعد'); return; }
+  if (!entries.length) { setEmpty(mc, 'ما فيه ملاحظات'); return; }
   entries.sort(([a],[b]) => +a - +b);
 
   let html = '';
@@ -1635,7 +2017,7 @@ function buildMemoryView() {
   });
 
   if (totalNotes) mc.innerHTML = html;
-  else setEmpty(mc, 'ما فيه ملاحظات مسجلة بعد');
+  else setEmpty(mc, 'ما فيه ملاحظات مسجلة');
 }
 
 function updateLogUI() {
@@ -1647,7 +2029,7 @@ function updateLogUI() {
   if (eName) eName.value = state.name || '';
   const c = $('logContainer');
   const entries = Object.entries(state.days).filter(([,d])=>d && d.done);
-  if (!entries.length) { setEmpty(c, 'ما فيه أيام منتهية بعد'); return; }
+  if (!entries.length) { setEmpty(c, 'ما فيه أيام منتهية'); return; }
   entries.sort(([a],[b])=>+a-+b);
   const maxXP = getBaseDayMaxXP();
   c.innerHTML = entries.map(([idx,day])=>{
@@ -1712,7 +2094,7 @@ function startSession() {
   state.name = name;
   saveState();
   hideSetup();
-  viewDayIdx=getTodayIndex(); updateAllUI();
+  viewDayIdx=getTodayIndex(); updateAllUI(); setTimeout(maybeShowMorningModal, 0);
 }
 
 // ── HIJRI CALENDAR ──
@@ -1813,7 +2195,8 @@ window.onload = () => {
   if(loadState()&&state.startDate){
     migratePhantomXP();
     hideSetup();
-    viewDayIdx=getTodayIndex(); updateAllUI();
+    syncTodayPhase(true);
+    viewDayIdx=getTodayIndex(); updateAllUI(); setTimeout(maybeShowMorningModal, 0);
   }
 };
   if ('serviceWorker' in navigator) {
