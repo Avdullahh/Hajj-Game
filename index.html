@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>مشرف الزون — عبدالله الحازمي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel+Decorative:wght@700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel+Decorative:wght@700&family=Inter:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #F2E8D2; --bg2: #E8DCBF; --panel: #FBF7EC; --border: #C0963A;
@@ -18,12 +18,13 @@
     --teal: #0F5A4A; --teal-light: #083D32;
     --red: #8B1818; --red-light: #8B1818;
     --text: #1A1008; --text-dim: #4A3020;
+    --number-font: 'Inter', 'Segoe UI', Arial, sans-serif;
     --radius: 8px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg); color: var(--text);
-    font-family: 'Amiri', serif; font-size: 18px;
+    font-family: 'Amiri', serif; font-size: 18px; font-weight: 700;
     min-height: 100vh; overflow-x: hidden; position: relative;
   }
   body::before {
@@ -62,10 +63,10 @@
   .char-avatar { width: 90px; height: 90px; border: 2px solid var(--gold-dim); border-radius: 50%; margin: 0 auto 16px; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 40px; position: relative; box-shadow: 0 0 24px rgba(200,151,42,0.15); }
   .char-avatar::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid rgba(200,151,42,0.2); }
   .level-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(200,151,42,0.1); border: 1px solid var(--gold-dim); border-radius: 20px; padding: 4px 14px; font-size: 14px; color: var(--gold); margin-bottom: 16px; }
-  .level-num { font-family: 'Cinzel Decorative', cursive; font-size: 13px; color: var(--gold-light); }
+  .level-num { font-family: var(--number-font); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: var(--gold-light); }
   .xp-section { margin-top: 8px; }
-  .xp-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
-  .xp-multiplier { text-align: center; font-size: 12px; color: var(--teal-light); margin-bottom: 6px; }
+  .xp-label { display: flex; justify-content: space-between; font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  .xp-multiplier { text-align: center; font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--teal-light); margin-bottom: 6px; }
   .xp-bar-track { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; height: 10px; overflow: hidden; }
   .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold-light)); border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); position: relative; }
   .xp-bar-fill::after { content: ''; position: absolute; top: 0; right: 0; width: 20px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3)); animation: shimmer-bar 2s infinite; }
@@ -73,12 +74,12 @@
 
   .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 8px; text-align: center; }
-  .stat-value { font-family: 'Cinzel Decorative', cursive; font-size: 20px; color: var(--gold-light); display: block; }
+  .stat-value { font-family: var(--number-font); font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700; color: var(--gold-light); display: block; }
   .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
   #view-home .stats-row, #view-home .readiness-panel, #homeRoundsPanel, #view-home .home-cta { display: none; }
   .today-dashboard { display: flex; flex-direction: column; gap: 14px; }
   .today-stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .today-action-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .today-action-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .today-action-btn { background: rgba(200,151,42,0.15); border: 1px solid var(--gold-dim); border-radius: var(--radius); color: var(--gold-light); font-family: 'Amiri', serif; font-size: 16px; font-weight: 700; padding: 11px 8px; cursor: pointer; transition: all 0.2s; }
   .today-action-btn:hover, .today-action-btn:focus-visible, .today-action-btn:active { background: rgba(200,151,42,0.25); }
   .today-action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -89,7 +90,7 @@
   .home-tasks-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; user-select: none; transition: background 0.2s; }
   .home-tasks-header:hover { background: rgba(200,151,42,0.06); }
   .home-tasks-title { font-family: 'Cinzel Decorative', cursive; font-size: 13px; color: var(--gold-light); flex: 1; }
-  .home-tasks-chip { font-size: 12px; padding: 2px 10px; border-radius: 10px; border: 1px solid var(--gold-dim); color: var(--gold); background: rgba(200,151,42,0.1); }
+  .home-tasks-chip { font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-size: 12px; padding: 2px 10px; border-radius: 10px; border: 1px solid var(--gold-dim); color: var(--gold); background: rgba(200,151,42,0.1); }
   .home-tasks-chip.all-done { border-color: var(--teal); color: var(--teal-light); background: rgba(42,122,106,0.12); }
   .home-tasks-chevron { font-size: 12px; color: var(--text-dim); transition: transform 0.2s; }
   .home-tasks-chevron.open { transform: rotate(180deg); }
@@ -110,7 +111,7 @@
   .home-zone-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; user-select: none; transition: background 0.2s; }
   .home-zone-header:hover { background: rgba(200,151,42,0.06); }
   .home-zone-title { font-family: 'Cinzel Decorative', cursive; font-size: 13px; color: var(--gold-light); flex: 1; }
-  .home-zone-score { font-size: 12px; color: var(--teal-light); background: rgba(42,122,106,0.12); border: 1px solid var(--teal); border-radius: 10px; padding: 1px 8px; }
+  .home-zone-score { font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--teal-light); background: rgba(42,122,106,0.12); border: 1px solid var(--teal); border-radius: 10px; padding: 1px 8px; }
   .home-zone-chevron { font-size: 12px; color: var(--text-dim); transition: transform 0.2s; }
   .home-zone-chevron.open { transform: rotate(180deg); }
   .home-zone-body { border-top: 1px solid var(--border); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -133,7 +134,7 @@
   .day-nav-btn:hover:not(:disabled) { border-color: var(--gold-dim); color: var(--gold); }
   .day-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .day-nav-center { text-align: center; flex: 1; }
-  .day-nav-label { font-family: 'Cinzel Decorative', cursive; font-size: 14px; color: var(--gold-light); }
+  .day-nav-label { font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 700; color: var(--gold-light); }
   .day-nav-date { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
   .day-today-badge { display: inline-block; font-size: 11px; background: rgba(200,151,42,0.15); border: 1px solid var(--gold-dim); border-radius: 10px; padding: 1px 8px; color: var(--gold); margin-top: 2px; }
 
@@ -142,7 +143,7 @@
   .pillar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .pillar-icon { font-size: 18px; }
   .pillar-name { font-size: 16px; font-weight: 700; color: var(--text); flex: 1; }
-  .pillar-xp { font-size: 12px; color: var(--gold-dim); background: rgba(200,151,42,0.08); border: 1px solid var(--gold-dim); border-radius: 20px; padding: 2px 10px; }
+  .pillar-xp { font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--gold-dim); background: rgba(200,151,42,0.08); border: 1px solid var(--gold-dim); border-radius: 20px; padding: 2px 10px; }
   .pillar-tasks { display: flex; flex-direction: column; gap: 8px; }
 
   /* TASK ITEM — binary */
@@ -159,7 +160,7 @@
   .task-copy { flex: 1; min-width: 0; cursor: pointer; display: flex; align-items: center; }
   .task-text { display: block; font-size: 15px; }
   .task-note { display: block; margin-top: 4px; color: var(--text-dim); font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .task-xp { font-size: 12px; color: var(--text-dim); flex-shrink: 0; }
+  .task-xp { font-family: var(--number-font); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text-dim); flex-shrink: 0; }
   .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
   .task-action-btn { background: none; border: 1px solid transparent; border-radius: 5px; padding: 6px 10px; cursor: pointer; font-size: 14px; transition: all 0.2s; color: var(--text-dim); font-family: 'Amiri', serif; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
   .task-action-btn.edit:hover { border-color: var(--gold-dim); color: var(--gold); background: rgba(200,151,42,0.08); }
@@ -231,14 +232,22 @@
   .submit-btn.done-today { background: linear-gradient(135deg, rgba(42,122,106,0.3), rgba(42,122,106,0.2)); border-color: var(--teal); color: var(--teal-light); }
 
   /* LOG */
-  .log-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.2s; }
+  .log-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; transition: border-color 0.2s; }
   .log-item:hover { border-color: var(--gold-dim); }
-  .log-day { font-family: 'Cinzel Decorative', cursive; font-size: 13px; color: var(--gold-dim); width: 32px; flex-shrink: 0; text-align: center; }
+  .log-item-top { display: flex; align-items: center; gap: 12px; }
+  .log-day { font-family: var(--number-font); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: var(--gold-dim); width: 32px; flex-shrink: 0; text-align: center; }
   .log-bar-wrap { flex: 1; }
   .log-label { font-size: 14px; color: var(--text-dim); margin-bottom: 4px; }
   .log-bar-track { background: var(--bg); border-radius: 3px; height: 6px; overflow: hidden; }
   .log-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
-  .log-xp { font-size: 14px; color: var(--gold); text-align: end; flex-shrink: 0; }
+  .log-xp { font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-size: 14px; color: var(--gold); text-align: end; flex-shrink: 0; }
+  .log-reflection { display: flex; flex-direction: column; gap: 4px; padding-top: 2px; border-top: 1px solid var(--border); }
+  .log-reflection ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .log-reflection li { font-size: 12px; line-height: 1.5; padding-right: 4px; }
+  .log-positives li { color: var(--teal-light); }
+  .log-positives li::before { content: '✅ '; }
+  .log-negatives li { color: #c97a7a; }
+  .log-negatives li::before { content: '❌ '; }
 
   /* LEVEL UP */
   .levelup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
@@ -291,7 +300,7 @@
   .readiness-panel { padding: 16px 20px; }
   .readiness-label { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
   .readiness-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
-  .readiness-pct { font-family: 'Cinzel Decorative', cursive; font-size: 32px; color: var(--gold-light); transition: color 0.3s; }
+  .readiness-pct { font-family: var(--number-font); font-variant-numeric: tabular-nums; font-size: 32px; font-weight: 700; color: var(--gold-light); transition: color 0.3s; }
   .readiness-status { font-size: 14px; flex: 1; }
   .readiness-bar-track { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; height: 8px; overflow: hidden; }
   .readiness-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease, background 0.3s; }
@@ -336,7 +345,7 @@
   .flow-question-label { font-size: 16px; color: var(--text); margin-bottom: 8px; }
   .flow-sublabel { font-size: 12px; color: var(--text-dim); margin-top: 2px; margin-bottom: 8px; }
   .closing-task-review { display: flex; flex-direction: column; gap: 12px; }
-  .closing-task-progress { font-size: 12px; color: var(--gold-dim); font-family: 'Cinzel Decorative', cursive; }
+  .closing-task-progress { font-size: 12px; color: var(--gold-dim); font-family: var(--number-font), 'Amiri', serif; font-variant-numeric: tabular-nums; font-weight: 700; }
   .closing-task-text { font-size: 16px; color: var(--text); line-height: 1.5; font-family: 'Amiri', serif; }
   .closing-task-btns { display: flex; gap: 8px; }
   .closing-task-btns .flow-choice { flex: 1; padding: 10px 6px; font-size: 14px; text-align: center; }
@@ -607,8 +616,6 @@
         <div class="home-zone-body" id="homeEvidenceBody" style="display:none"></div>
       </div>
       <div class="today-action-row">
-        <button class="today-action-btn" id="homeNoteBtn" onclick="openNoteModal()">+ ملاحظة</button>
-        <button class="today-action-btn" id="homeQuickBtn" onclick="openQuickCheckModal()">تقييم سريع</button>
         <button class="today-action-btn close" id="homeCloseBtn" onclick="openClosingFlow()">إغلاق اليوم</button>
       </div>
     </div>
@@ -669,11 +676,11 @@
   <!-- LOG -->
   <div class="view" id="view-log">
     <div class="panel">
-      <div class="section-title">📋 سجل الموسم</div>
+      <div class="section-title">📋 سجل</div>
       <div id="logContainer"><div class="empty">ما فيه أيام منتهية</div></div>
     </div>
     <div class="panel">
-      <div class="section-title">⚙️ إعدادات الموسم</div>
+      <div class="section-title">⚙️ إعدادات</div>
       <div style="display:flex;flex-direction:column;gap:12px">
         <div>
           <div class="setup-label" style="margin-bottom:6px">الاسم</div>
@@ -1375,15 +1382,13 @@ function updateHomeUI() {
   const rPct = calcReadiness(getZoneRoundsForDay(d));
   const homeReadinessPct = $('homeReadinessPct');
   const homeLastUpdate = $('homeLastUpdate');
-  const homeNoteBtn = $('homeNoteBtn');
-  const homeQuickBtn = $('homeQuickBtn');
   const homeCloseBtn = $('homeCloseBtn');
   if (homeReadinessPct) homeReadinessPct.textContent = rPct + '%';
   if (homeLastUpdate) homeLastUpdate.textContent = getTodayLastUpdateLabel(d);
   renderHomeZonePanel(d);
   renderHomeEvidence(d);
   const locked = !isViewingToday() || isDaySubmitted(d) || state.todayPhase === 'done';
-  [homeNoteBtn, homeQuickBtn, homeCloseBtn].forEach(btn => { if (btn) btn.disabled = locked; });
+  [homeCloseBtn].forEach(btn => { if (btn) btn.disabled = locked; });
 
   const rColor  = readinessColor(rPct);
   const rStatus = rPct >= 90 ? '🟢 جاهز جداً'     : rPct >= 70 ? '🟡 يحتاج متابعة'   : '🔴 يحتاج تصعيد';
@@ -2297,6 +2302,36 @@ function saveSettings() {
 }
 
 // ── LOG ──
+function buildDayReflection(day) {
+  const positives = [];
+  const negatives = [];
+
+  const rounds = day.zoneRounds || [];
+  const evidence = day.evidence || [];
+  const readiness = calcReadiness(rounds);
+
+  // Positives
+  if (day.perfect) positives.push('يوم مثالي');
+  else if (day.coreComplete) positives.push('جميع المهام الأساسية مكتملة');
+  if (rounds.length > 0 && readiness >= 80) positives.push('جاهزية عالية · ' + readiness + '%');
+  if (evidence.length > 0) positives.push('دليل موثق · ' + evidence.length + ' إدخال');
+  if (rounds.length > 0) positives.push(rounds.length + ' جولات مسجلة');
+
+  // Negatives
+  if (day.coreComplete === false) negatives.push('مهام أساسية ناقصة');
+  if (rounds.length > 0 && readiness < 60) negatives.push('جاهزية منخفضة · ' + readiness + '%');
+
+  const allTasks = (day.pillarsSnapshot || []).flatMap(p => p.tasks || []);
+  const naMap = day.naMap || {};
+  const incomplete = allTasks.filter(t => (day.tasks?.[t.id] || 0) !== 100 && !naMap[t.id]).length;
+  if (incomplete > 0) negatives.push(incomplete + ' مهام غير مكتملة');
+
+  if (rounds.length === 0) negatives.push('لا توجد جولات مسجلة');
+  if (evidence.length === 0) negatives.push('لا يوجد دليل موثق');
+
+  return { positives, negatives };
+}
+
 function updateLogUI() {
   const eDate = $('editStartDate');
   const eDays = $('editTotalDays');
@@ -2313,13 +2348,23 @@ function updateLogUI() {
     const pct = Math.min(100,(day.xp/maxXP)*100);
     const col = day.perfect?'var(--gold)':(pct>60?'var(--teal)':'var(--text-dim)');
     const extra = day.extraXP || Math.max(0, (day.activityXP||day.xp) - day.xp);
+    const { positives, negatives } = buildDayReflection(day);
+    const posHtml = positives.length ? `<ul>${positives.map(t=>`<li>${escapeHtml(t)}</li>`).join('')}</ul>` : '';
+    const negHtml = negatives.length ? `<ul>${negatives.map(t=>`<li>${escapeHtml(t)}</li>`).join('')}</ul>` : '';
+    const reflectionHtml = (positives.length || negatives.length) ? `
+      <div class="log-reflection">
+        ${posHtml ? `<div class="log-positives">${posHtml}</div>` : ''}
+        ${negHtml ? `<div class="log-negatives">${negHtml}</div>` : ''}
+      </div>` : '';
     return `<div class="log-item" onclick="jumpToDay(${+idx})">
-      <div class="log-day">${+idx+1}</div>
-      <div class="log-bar-wrap">
-        <div class="log-label">${day.perfect?'⭐ يوم مثالي':'يوم عادي'}${(day.evidence?.length) ? ' · 🏅 '+day.evidence.length+' دليل' : ''}</div>
-        <div class="log-bar-track"><div class="log-bar-fill" style="width:${pct}%;background:${col}"></div></div>
-      </div>
-      <div class="log-xp">${day.xp} XP${extra ? ' +' + extra + ' متابعة' : ''}</div>
+      <div class="log-item-top">
+        <div class="log-day">${+idx+1}</div>
+        <div class="log-bar-wrap">
+          <div class="log-label">${day.perfect?'⭐ يوم مثالي':'يوم عادي'}</div>
+          <div class="log-bar-track"><div class="log-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+        </div>
+        <div class="log-xp">${day.xp} XP${extra ? ' +' + extra + ' متابعة' : ''}</div>
+      </div>${reflectionHtml}
     </div>`;
   }).join('');
 }
