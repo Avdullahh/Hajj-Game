@@ -313,6 +313,14 @@
   .flow-question { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
   .flow-question-label { font-size: 16px; color: var(--text); margin-bottom: 8px; }
   .flow-sublabel { font-size: 12px; color: var(--text-dim); margin-top: 2px; margin-bottom: 8px; }
+  .closing-task-review { display: flex; flex-direction: column; gap: 12px; }
+  .closing-task-progress { font-size: 12px; color: var(--gold-dim); font-family: 'Cinzel Decorative', cursive; }
+  .closing-task-text { font-size: 16px; color: var(--text); line-height: 1.5; font-family: 'Amiri', serif; }
+  .closing-task-btns { display: flex; gap: 8px; }
+  .closing-task-btns .flow-choice { flex: 1; padding: 10px 6px; font-size: 14px; text-align: center; }
+  .closing-task-btn-complete.active, .closing-task-btn-complete:hover { background: rgba(42,122,106,0.2); border-color: var(--teal); color: var(--teal-light); }
+  .closing-task-btn-na.active, .closing-task-btn-na:hover { background: rgba(200,151,42,0.15); border-color: var(--gold-dim); color: var(--gold); }
+  .closing-task-btn-skip.active, .closing-task-btn-skip:hover { background: rgba(122,32,32,0.1); border-color: var(--red); color: var(--red-light); }
   .flow-options, .note-cat-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .flow-choice, .note-cat-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; color: var(--text-dim); font-family: 'Amiri', serif; font-size: 14px; padding: 6px 14px; cursor: pointer; }
   .flow-choice.active, .note-cat-btn.active { background: rgba(15,90,74,0.14); border-color: var(--teal); color: var(--teal-light); font-weight: 700; }
@@ -1473,6 +1481,8 @@ function getTodayLastUpdateLabel(dayIdx) {
 
 let closingStep = 1;
 let closingDraft = { readiness: 75, highlight: '' };
+let closingTasks = [];
+let closingTaskIdx = 0;
 
 function openClosingFlow() {
   if (isDaySubmitted(getTodayIndex())) return;
@@ -1481,9 +1491,69 @@ function openClosingFlow() {
   saveState();
   closingStep = 1;
   closingDraft = { readiness: calcReadiness(getZoneRoundsForDay(getTodayIndex())) || 75, highlight: '' };
+
+  // Collect incomplete base tasks for Phase 1
+  const dayIdx = getTodayIndex();
+  const checks = (state.todayChecks || {})[dayIdx] || {};
+  const naMap = getNAMap(dayIdx);
+  closingTasks = getPillars(dayIdx)
+    .flatMap(p => p.tasks.filter(t => t._scope === 'base'))
+    .filter(t => !naMap[t.id] && getCheckValue(checks, t.id) !== 100);
+  closingTaskIdx = 0;
+
   renderClosingStep();
   openFlowModal('closingModal');
   updateHomeUI();
+}
+
+function renderTaskReviewStep(content, actions) {
+  const task = closingTasks[closingTaskIdx];
+  const total = closingTasks.length;
+  const current = closingTaskIdx + 1;
+
+  content.innerHTML = `
+    <div class="closing-task-review">
+      <div class="closing-task-progress">مهام اليوم · ${current} من ${total}</div>
+      <div class="closing-task-text">${escapeHtml(task.text)}</div>
+      <div class="closing-task-btns" id="closingTaskBtns">
+        <button class="flow-choice closing-task-btn-complete" onclick="advanceTaskReview('complete')">اكتملت</button>
+        <button class="flow-choice closing-task-btn-na" onclick="advanceTaskReview('na')">لا ينطبق</button>
+        <button class="flow-choice closing-task-btn-skip" onclick="advanceTaskReview('skip')">لم تكتمل</button>
+      </div>
+      <div class="closing-task-na-row" id="closingTaskNARow" style="display:none">
+        <input type="text" id="closingTaskNAReason" maxlength="80" placeholder="السبب (مطلوب)"
+          class="flow-textarea" style="height:auto;padding:8px 10px;font-size:14px;margin-top:8px;">
+        <button class="flow-primary" style="margin-top:8px;width:100%" onclick="confirmTaskNA()">تأكيد</button>
+      </div>
+    </div>`;
+  actions.innerHTML = '';
+}
+
+function advanceTaskReview(action) {
+  const task = closingTasks[closingTaskIdx];
+  if (action === 'complete') {
+    autoComplete(task.id, 100);
+    closingTaskIdx++;
+    renderClosingStep();
+    updateAllUI();
+  } else if (action === 'na') {
+    const naRow = $('closingTaskNARow');
+    if (naRow) naRow.style.display = 'block';
+    setTimeout(() => $('closingTaskNAReason')?.focus(), 0);
+  } else if (action === 'skip') {
+    closingTaskIdx++;
+    renderClosingStep();
+  }
+}
+
+function confirmTaskNA() {
+  const reason = ($('closingTaskNAReason')?.value || '').trim();
+  if (!reason) { $('closingTaskNAReason')?.focus(); return; }
+  const task = closingTasks[closingTaskIdx];
+  setTaskNA(task.id, reason);
+  closingTaskIdx++;
+  renderClosingStep();
+  updateAllUI();
 }
 
 function renderClosingStep() {
@@ -1491,6 +1561,13 @@ function renderClosingStep() {
   const actions = $('closingActions');
   if (!content || !actions) return;
 
+  // Phase 1: incomplete task review
+  if (closingTaskIdx < closingTasks.length) {
+    renderTaskReviewStep(content, actions);
+    return;
+  }
+
+  // Phase 2: closing steps
   if (closingStep === 1) {
     content.innerHTML = `
       <div class="flow-question">
