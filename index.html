@@ -107,6 +107,10 @@
   .task-item:hover { border-color: var(--gold-dim); }
   .task-item.done { border-color: var(--teal); background: rgba(42,122,106,0.08); }
   .task-item.done .task-text { color: var(--teal-light); }
+  .task-item.na { border-color: var(--border); background: transparent; opacity: 0.5; }
+  .task-item.na .task-text { text-decoration: line-through; color: var(--text-dim); }
+  .task-item.na .task-check { border-color: var(--border); cursor: default; }
+  .task-na-reason { display: block; margin-top: 3px; font-size: 12px; color: var(--text-dim); font-style: italic; }
   .task-check { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 13px; }
   .task-item.done .task-check { background: var(--teal); border-color: var(--teal); color: white; box-shadow: 0 0 8px rgba(42,170,138,0.4); }
   .task-copy { flex: 1; min-width: 0; cursor: pointer; display: flex; align-items: center; }
@@ -451,6 +455,21 @@
     <div class="flow-actions">
       <button class="flow-secondary" onclick="closeFlowModal('noteModal')">إلغاء</button>
       <button class="flow-primary" onclick="submitNoteModal()">حفظ الملاحظة</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="naModal">
+  <div class="modal-box">
+    <div class="modal-title">لا ينطبق اليوم</div>
+    <div class="modal-body">
+      <div class="flow-question-label" style="margin-bottom:8px">السبب (مطلوب)</div>
+      <input type="text" id="naReasonInput" maxlength="80" placeholder="مثال: ما كانت فيه مشاكل اليوم"
+        class="setup-input" style="margin-bottom:0; text-align:right; width:100%; box-sizing:border-box;">
+    </div>
+    <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px;">
+      <button class="flow-secondary" style="flex:1" onclick="closeFlowModal('naModal')">إلغاء</button>
+      <button class="flow-primary" style="flex:1" onclick="submitNA()">تأكيد</button>
     </div>
   </div>
 </div>
@@ -863,6 +882,25 @@ function clearTaskNA(taskId) {
   const dayIdx = getTodayIndex();
   const map = (state.todayNA || {})[dayIdx];
   if (map) { delete map[taskId]; saveState(); }
+}
+
+let _naPendingTaskId = null;
+
+function openNAPrompt(taskId) {
+  _naPendingTaskId = taskId;
+  const input = $('naReasonInput');
+  if (input) input.value = '';
+  openFlowModal('naModal');
+  setTimeout(() => input?.focus(), 0);
+}
+
+function submitNA() {
+  const reason = ($('naReasonInput')?.value || '').trim();
+  if (!reason) { $('naReasonInput')?.focus(); return; }
+  if (_naPendingTaskId) setTaskNA(_naPendingTaskId, reason);
+  _naPendingTaskId = null;
+  closeFlowModal('naModal');
+  updateAllUI();
 }
 
 function getPillars(dayIdx = viewDayIdx) {
@@ -1519,9 +1557,7 @@ function updateQuestUI() {
 
     pillar.tasks.forEach(task => {
       const val = getCheckValue(checks, task.id);
-      tasksDiv.appendChild(task.partial
-        ? buildPartialItem(task, val, pillar, submitted)
-        : buildBinaryItem(task, val === 100, pillar, submitted));
+      tasksDiv.appendChild(buildBinaryItem(task, val === 100, pillar, submitted));
     });
 
     pillarDiv.appendChild(tasksDiv);
@@ -1557,89 +1593,57 @@ function updateQuestUI() {
 
 // ── BINARY TASK ──
 function buildBinaryItem(task, isDone, pillar, submitted) {
-  const item = el('div', 'task-item' + (isDone ? ' done' : ''));
+  const dayIdx = viewDayIdx;
+  const isNA = !submitted && isTaskNA(dayIdx, task.id);
+  const naData = isNA ? getNAMap(dayIdx)[task.id] : null;
 
-  const chk = el('div', 'task-check', isDone ? '✓' : '');
-  if (!submitted) chk.onclick = () => toggleBinary(task.id, task.xp, task._scope);
+  const item = el('div', 'task-item' + (isDone ? ' done' : '') + (isNA ? ' na' : ''));
+
+  const chk = el('div', 'task-check', isDone ? '✓' : (isNA ? '—' : ''));
+  if (!submitted && !isNA) chk.onclick = () => toggleBinary(task.id, task.xp, task._scope);
 
   const copy = el('div', 'task-copy');
-  if (!submitted) copy.onclick = () => toggleBinary(task.id, task.xp, task._scope);
+  if (!submitted && !isNA) copy.onclick = () => toggleBinary(task.id, task.xp, task._scope);
 
   const txt = el('span', 'task-text', task.text);
   copy.appendChild(txt);
 
-  if (task.note) {
+  if (isNA && naData?.reason) {
+    const reason = el('span', 'task-na-reason', 'لا ينطبق: ' + naData.reason);
+    copy.appendChild(reason);
+  } else if (task.note) {
     const note = el('span', 'task-note', task.note);
     copy.appendChild(note);
   }
 
-  const xpSpan = el('span', 'task-xp', '+'+task.xp);
-
+  const xpSpan = el('span', 'task-xp', '+' + task.xp);
   item.append(chk, copy, xpSpan);
-  if (!submitted) item.appendChild(buildActionBtns(task, pillar, item));
+
+  if (!submitted) {
+    if (isNA) {
+      const undoBtn = el('button', 'task-action-btn', '↩');
+      undoBtn.title = 'استعد للمهمة';
+      undoBtn.style.color = 'var(--gold-dim)';
+      undoBtn.onclick = () => { clearTaskNA(task.id); updateAllUI(); };
+      const actions = el('div', 'task-actions');
+      actions.appendChild(undoBtn);
+      item.appendChild(actions);
+    } else {
+      item.appendChild(buildActionBtns(task, pillar, item));
+    }
+  }
   return item;
 }
 
-// ── PARTIAL TASK ──
-function buildPartialItem(task, val, pillar, submitted) {
-  const wrap = el('div', 'task-partial');
-
-  const top = el('div', 'task-partial-top');
-
-  const taskLbl = el('span', 'task-partial-label', task.text);
-
-  const earned = el('span');
-  const updateEarned = pct => {
-    const xp = earnedXP(task.xp, pct);
-    earned.className = 'task-partial-earned' + (xp > 0 ? ' has-xp' : '');
-    earned.textContent = xp + ' / ' + task.xp + ' XP';
-  };
-  updateEarned(val);
-
-  top.append(taskLbl, earned);
-  if (!submitted) top.appendChild(buildActionBtns(task, pillar, wrap));
-  wrap.appendChild(top);
-
-  if (task.note) {
-    const note = el('div', 'task-partial-note', task.note);
-    wrap.appendChild(note);
-  }
-
-  const pctRow = el('div', 'pct-input-row');
-
-  const inp = el('input');
-  inp.type = 'number';
-  inp.min = 0; inp.max = 100;
-  inp.value = val;
-  inp.className = 'pct-input' + (val === 100 ? ' full' : '');
-  inp.disabled = !!submitted;
-
-  const pctLbl = el('span', 'pct-label');
-  const updatePctLabel = pct => {
-    pctLbl.textContent = '% من ' + task.xp + ' XP = ' + earnedXP(task.xp, pct) + ' XP';
-  };
-  updatePctLabel(val);
-
-  inp.oninput = () => {
-    let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
-    inp.className = 'pct-input' + (pct === 100 ? ' full' : '');
-    updatePctLabel(pct);
-    updateEarned(pct);
-  };
-  inp.onchange = () => {
-    let pct = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
-    inp.value = pct;
-    setPartial(task.id, task.xp, pct, task._scope);
-  };
-
-  pctRow.appendChild(inp);
-  pctRow.appendChild(pctLbl);
-  wrap.appendChild(pctRow);
-  return wrap;
-}
 
 function buildActionBtns(task, pillar, parentRef) {
   const actions = el('div', 'task-actions');
+
+  const naBtn = el('button', 'task-action-btn', '—');
+  naBtn.title = 'لا ينطبق اليوم';
+  naBtn.style.fontSize = '11px';
+  naBtn.style.color = 'var(--text-dim)';
+  naBtn.onclick = e => { e.stopPropagation(); openNAPrompt(task.id); };
 
   const editBtn = el('button', 'task-action-btn edit', '✏️');
   editBtn.title = 'عدّل';
@@ -1649,7 +1653,7 @@ function buildActionBtns(task, pillar, parentRef) {
   delBtn.title = 'احذف';
   delBtn.onclick = e => { e.stopPropagation(); deleteTask(task, pillar); };
 
-  actions.append(editBtn, delBtn);
+  actions.append(naBtn, editBtn, delBtn);
   return actions;
 }
 
@@ -1677,10 +1681,6 @@ function showEditRow(task, pillar, targetEl) {
     </div>
     <textarea class="task-edit-note" placeholder="ملاحظات المتابعة: خطوات، عوائق، أو مرجع الإتمام">${escapeHtml(task.note || '')}</textarea>
     <div class="task-edit-partial-wrap">
-      <input type="checkbox" id="editPartialChk" ${task.partial ? 'checked' : ''}>
-      <label for="editPartialChk">نسبة الاتمام (يدوي)</label>
-    </div>
-    <div class="task-edit-partial-wrap">
       <input type="checkbox" id="editAllDaysChk" ${!canChooseScope || isGlobalCustom ? 'checked' : ''} ${canChooseScope ? '' : 'disabled'}>
       <label for="editAllDaysChk">${canChooseScope ? 'طبّق هذه المهمة على كل الأيام' : 'تعديل المهمة الأساسية يطبق على كل الأيام'}</label>
     </div>
@@ -1690,11 +1690,10 @@ function showEditRow(task, pillar, targetEl) {
     </div>
   `;
   targetEl.replaceWith(row);
-  const { textInput, xpInput, noteInput, partialInput, allDaysInput, saveBtn, cancelBtn } = controls(row, {
+  const { textInput, xpInput, noteInput, allDaysInput, saveBtn, cancelBtn } = controls(row, {
     textInput: '.task-edit-text',
     xpInput: '.task-edit-xp',
     noteInput: '.task-edit-note',
-    partialInput: '#editPartialChk',
     allDaysInput: '#editAllDaysChk',
     saveBtn: '.task-edit-save',
     cancelBtn: '.task-edit-cancel'
@@ -1703,10 +1702,9 @@ function showEditRow(task, pillar, targetEl) {
     const text = textInput.value.trim();
     const xp   = isCustomTask ? FOLLOWUP_TASK_POINTS : (parseInt(xpInput.value) || task.xp);
     const note = noteInput.value.trim();
-    const partial = partialInput.checked;
     const allDays = allDaysInput.checked;
     if (!text) return;
-    saveTaskEdit(task, pillar, text, xp, partial, note, allDays);
+    saveTaskEdit(task, pillar, text, xp, false, note, allDays);
   };
   cancelBtn.onclick = () => updateQuestUI();
   textInput.focus();
