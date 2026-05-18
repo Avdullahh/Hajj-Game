@@ -318,6 +318,8 @@
   .closing-task-text { font-size: 16px; color: var(--text); line-height: 1.5; font-family: 'Amiri', serif; }
   .closing-task-btns { display: flex; gap: 8px; }
   .closing-task-btns .flow-choice { flex: 1; padding: 10px 6px; font-size: 14px; text-align: center; }
+  .closing-task-na-row { display: flex; gap: 8px; margin-top: 8px; align-items: stretch; }
+  .closing-task-na-row textarea { flex: 1; }
   .closing-task-btn-complete.active, .closing-task-btn-complete:hover { background: rgba(42,122,106,0.2); border-color: var(--teal); color: var(--teal-light); }
   .closing-task-btn-na.active, .closing-task-btn-na:hover { background: rgba(200,151,42,0.15); border-color: var(--gold-dim); color: var(--gold); }
   .closing-task-btn-skip.active, .closing-task-btn-skip:hover { background: rgba(122,32,32,0.1); border-color: var(--red); color: var(--red-light); }
@@ -911,14 +913,12 @@ function isTaskNA(dayIdx, taskId) {
   return !!(getNAMap(dayIdx)[taskId]);
 }
 
-function setTaskNA(taskId, reason) {
-  const dayIdx = viewDayIdx;
+function setTaskNA(taskId, reason, dayIdx = viewDayIdx) {
   ensureObject(ensureObject(state, 'todayNA'), dayIdx)[taskId] = { reason };
   saveState();
 }
 
-function clearTaskNA(taskId) {
-  const dayIdx = viewDayIdx;
+function clearTaskNA(taskId, dayIdx = viewDayIdx) {
   const map = (state.todayNA || {})[dayIdx];
   if (map) { delete map[taskId]; saveState(); }
 }
@@ -1515,7 +1515,7 @@ function renderTaskReviewStep(content, actions) {
     <div class="closing-task-review">
       <div class="closing-task-progress">مهام اليوم · ${current} من ${total}</div>
       <div class="closing-task-text">${escapeHtml(task.text)}</div>
-      <div class="closing-task-btns" id="closingTaskBtns">
+      <div class="closing-task-btns">
         <button class="flow-choice closing-task-btn-complete" onclick="advanceTaskReview('complete')">اكتملت</button>
         <button class="flow-choice closing-task-btn-na" onclick="advanceTaskReview('na')">لا ينطبق</button>
         <button class="flow-choice closing-task-btn-skip" onclick="advanceTaskReview('skip')">لم تكتمل</button>
@@ -1531,6 +1531,7 @@ function renderTaskReviewStep(content, actions) {
 
 function advanceTaskReview(action) {
   const task = closingTasks[closingTaskIdx];
+  if (!task) return;
   if (action === 'complete') {
     autoComplete(task.id, 100);
     closingTaskIdx++;
@@ -1550,7 +1551,8 @@ function confirmTaskNA() {
   const reason = ($('closingTaskNAReason')?.value || '').trim();
   if (!reason) { $('closingTaskNAReason')?.focus(); return; }
   const task = closingTasks[closingTaskIdx];
-  setTaskNA(task.id, reason);
+  if (!task) return;
+  setTaskNA(task.id, reason, getTodayIndex());
   closingTaskIdx++;
   renderClosingStep();
   updateAllUI();
