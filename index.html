@@ -1319,7 +1319,6 @@ function submitNoteModal() {
   const drafts = ensureObject(state, 'evidenceDrafts');
   ensureArray(drafts, currentDayIdx).push({ id: makeId('ev_'), category, text, timestamp: new Date().toISOString() });
   saveState();
-  autoComplete('log_note', 100);
   closeFlowModal('noteModal');
   updateAllUI();
 }
@@ -1334,7 +1333,6 @@ function submitQuickCheckModal() {
   const needsNote = flowValue('quickFollowup') === 'yes';
   if (flowValue('quickRound') === 'yes') {
     addZoneRound(currentDayIdx, 'جولة سريعة', 80, '', 'أخرى');
-    ['corridors', 'corridor_crowding', 'fridges', 'fridge_empty', 'cleaning', 'cleaning_weak'].forEach(id => autoComplete(id, 100));
   }
   closeFlowModal('quickCheckModal');
   updateAllUI();
@@ -1423,13 +1421,11 @@ function nextClosingStep() {
     addZoneRound(currentDayIdx, 'إغلاق اليوم', closingDraft.readiness, '', 'أخرى');
   } else if (closingStep === 2) {
     closingDraft.hasOpenNotes = flowValue('closingOpenNotes');
-    if (closingDraft.hasOpenNotes === 'no') autoComplete('close_note', 100);
   } else if (closingStep === 3) {
     closingDraft.highlight = ($('closingHighlightInput')?.value || '').trim();
     const drafts = ensureObject(state, 'evidenceDrafts');
     ensureArray(drafts, currentDayIdx).push({ id: makeId('ev_'), category: 'أثر واضح', text: closingDraft.highlight || 'أهم شيء اليوم', timestamp: new Date().toISOString() });
     saveState();
-    autoComplete('update', 100);
   }
   closingStep++;
   renderClosingStep();
@@ -1437,6 +1433,7 @@ function nextClosingStep() {
 }
 
 function submitClosingDay() {
+  autoComplete('close_note', 100);
   const currentDayIdx = getTodayIndex();
   viewDayIdx = currentDayIdx;
   state.todayPhase = 'done';
