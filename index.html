@@ -617,23 +617,18 @@
 <script>
 const BASE_PILLARS = [
   { id: 'attendance', icon: '🕌', name: 'الحضور والانضباط', tasks: [
-    { id: 'checkin',     text: 'تثبيت بداية اليوم والاستعداد للعمل', xp: 12, partial: false, core: true }, // badge: الانضباط
-    { id: 'briefing',    text: 'فهم أولويات اليوم قبل الانشغال بالتفاصيل', xp: 10, partial: false, core: true }, // badge: الانضباط
-    { id: 'shift_ready', text: 'الحفاظ على حضور ذهني وعملي مستقر', xp: 18, partial: true } // badge: الانضباط
+    { id: 'checkin',     text: 'حضور الاجتماع الصباحي والاستعداد للعمل', xp: 12, partial: false, core: true },
+    { id: 'briefing',   text: 'فهم أولويات اليوم قبل الانشغال بالتفاصيل', xp: 10, partial: false, core: true },
+    { id: 'shift_ready', text: 'هل أنهيت يومك بوضوح ذهني وراجعت ما تم وما لم يتم؟', xp: 18, partial: false }
   ]},
   { id: 'facilities', icon: '🚶', name: 'الموقع والجولات', tasks: [
-    { id: 'corridors',         text: 'المرور على صورة الموقع العامة', xp: 18, partial: true,  readiness: true },
     { id: 'corridor_crowding', text: 'مراجعة وجود ما يستحق الانتباه', xp: 8,  partial: false, readiness: true },
-    { id: 'fridges',           text: 'ملاحظة الاحتياجات الأساسية أثناء الحركة',         xp: 16, partial: true,  readiness: true },
-    { id: 'fridge_empty',      text: 'التأكد من عدم ترك احتياج واضح بلا متابعة',             xp: 8,  partial: false, readiness: true },
-    { id: 'cleaning',          text: 'تقدير جاهزية الموقع خلال اليوم',      xp: 16, partial: true,  readiness: true },
-    { id: 'cleaning_weak',     text: 'مراجعة ما يحتاج متابعة لاحقة',   xp: 8,  partial: false, readiness: true }
+    { id: 'fridge_empty',      text: 'التأكد من عدم ترك احتياج واضح بلا متابعة', xp: 8, partial: false, readiness: true },
+    { id: 'cleaning_weak',     text: 'مراجعة ما يحتاج متابعة لاحقة', xp: 8, partial: false, readiness: true }
   ]},
   { id: 'reports', icon: '📋', name: 'التقارير والمتابعة', tasks: [
-    { id: 'update',                  text: 'إبقاء الصورة واضحة لمن يحتاجها',                       xp: 22, partial: true,  core: true, readiness: true },
-    { id: 'log_note',                text: 'توثيق شيء واحد يستحق الرجوع له',                  xp: 14, partial: false },
-    { id: 'close_note',              text: 'مراجعة المفتوح قبل إغلاق اليوم',         xp: 24, partial: false, core: true, readiness: true },
-    { id: 'solve_before_escalation', text: 'اختيار التصرف الأنسب لما ظهر خلال اليوم',                         xp: 26, partial: false }
+    { id: 'update',     text: 'إذا واجهت مشكلة — هل حاولت حلها؟ وإن لم تستطع، هل أوصلتها بوضوح مع مقترح لمسؤولك؟', xp: 22, partial: false, core: true, readiness: true },
+    { id: 'close_note', text: 'مراجعة المفتوح قبل إغلاق اليوم', xp: 24, partial: false, core: true, readiness: true }
   ]}
 ];
 
