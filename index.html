@@ -55,7 +55,8 @@
 
   /* CHARACTER */
   .char-header { text-align: center; padding: 24px 20px; }
-  .char-name { font-family: 'Scheherazade New', serif; font-size: 28px; font-weight: 700; color: var(--gold-light); margin-bottom: 4px; }
+  .char-name { font-family: 'Scheherazade New', serif; font-size: 22px; font-weight: 700; color: var(--gold-light); margin-bottom: 4px; }
+  .char-name:empty { display: none; }
   .char-title { font-size: 15px; color: var(--text-dim); margin-bottom: 20px; font-style: italic; transition: all 0.5s; }
   .char-avatar { width: 90px; height: 90px; border: 2px solid var(--gold-dim); border-radius: 50%; margin: 0 auto 16px; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 40px; position: relative; box-shadow: 0 0 24px rgba(200,151,42,0.15); }
   .char-avatar::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid rgba(200,151,42,0.2); }
@@ -205,6 +206,7 @@
   .setup-sub { font-size: 15px; color: var(--text-dim); margin-bottom: 28px; }
   .setup-label { font-size: 15px; color: var(--text-dim); margin-bottom: 8px; text-align: right; }
   .setup-input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'Amiri', serif; font-size: 16px; padding: 12px 14px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; text-align: right; }
+  input[type="date"].setup-input { width: auto; min-width: 160px; font-size: 14px; padding: 8px 10px; }
   .setup-input:focus { border-color: var(--gold-dim); }
   .setup-start { width: 100%; background: linear-gradient(135deg, var(--gold-dim), #9a7020); border: 1px solid var(--gold); border-radius: var(--radius); color: var(--cream); font-family: 'Amiri', serif; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; transition: all 0.3s; }
   .setup-start:hover { box-shadow: 0 4px 20px rgba(200,151,42,0.3); }
@@ -350,6 +352,8 @@
     <div style="font-size:48px;margin-bottom:12px">🕌</div>
     <div class="setup-title">مشرف الزون</div>
     <div class="setup-sub">بسم الله — ابدأ رحلة الحج</div>
+    <div class="setup-label">اسمك</div>
+    <input type="text" class="setup-input" id="nameInput" placeholder="مثال: عبدالله الحازمي" maxlength="40">
     <div class="setup-label">تاريخ أول يوم شغل</div>
     <input type="date" class="setup-input" id="startDateInput">
     <div class="setup-label">كم يوم تشتغل؟</div>
@@ -378,7 +382,7 @@
   <div class="view active" id="view-home">
     <div class="panel char-header">
       <div class="char-avatar">🧔</div>
-      <div class="char-name">عبدالله الحازمي</div>
+      <div class="char-name" id="charName"></div>
       <div class="char-title" id="charTitle">—</div>
       <div class="level-badge"><span>المستوى</span><span class="level-num" id="levelNum">1</span></div>
       <div class="xp-section">
@@ -454,6 +458,10 @@
     <div class="panel">
       <div class="section-title">⚙️ إعدادات الموسم</div>
       <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div class="setup-label" style="margin-bottom:6px">الاسم</div>
+          <input type="text" class="setup-input" id="editName" maxlength="40" style="margin-bottom:0">
+        </div>
         <div>
           <div class="setup-label" style="margin-bottom:6px">تاريخ أول يوم شغل</div>
           <input type="date" class="setup-input" id="editStartDate" style="margin-bottom:0">
@@ -928,6 +936,7 @@ function updateHomeUI() {
   const { current, next } = getLevelData(xp);
   const xpNext = $('xpNext');
   const xpBarFill = $('xpBarFill');
+  $('charName').textContent = state.name || '';
   $('charTitle').textContent = current.title;
   $('levelNum').textContent = current.level;
   $('xpCurrent').textContent = xp;
@@ -1537,10 +1546,12 @@ function resetData() {
 function saveSettings() {
   const d = $('editStartDate').value;
   const n = validTotalDays($('editTotalDays').value);
+  const name = $('editName').value.trim();
   if (!d) { alert('اختر تاريخ البداية'); return; }
   if (!n) { alert('عدد الأيام لازم يكون بين 1 و30'); return; }
   state.startDate = d;
   state.totalDays = n;
+  state.name = name;
   saveState();
   updateAllUI();
   alert('تم حفظ الإعدادات ✓');
@@ -1608,8 +1619,10 @@ function buildMemoryView() {
 function updateLogUI() {
   const eDate = $('editStartDate');
   const eDays = $('editTotalDays');
+  const eName = $('editName');
   if (eDate) eDate.value = state.startDate || '';
   if (eDays) eDays.value = state.totalDays || '';
+  if (eName) eName.value = state.name || '';
   const c = $('logContainer');
   const entries = Object.entries(state.days).filter(([,d])=>d && d.done);
   if (!entries.length) { setEmpty(c, 'ما فيه أيام منتهية بعد'); return; }
@@ -1671,8 +1684,11 @@ function showView(name) {
 function startSession() {
   const d=$('startDateInput').value;
   const n=$('totalDaysInput').value;
+  const name=$('nameInput').value.trim();
   if(!d){alert('اختار تاريخ البداية أولاً');return;}
   initState(d,n);
+  state.name = name;
+  saveState();
   hideSetup();
   viewDayIdx=getTodayIndex(); updateAllUI();
 }
