@@ -55,8 +55,9 @@
 
   /* CHARACTER */
   .char-header { text-align: center; padding: 24px 20px; }
-  .char-name { font-family: 'Scheherazade New', serif; font-size: 22px; font-weight: 700; color: var(--gold-light); margin-bottom: 4px; }
-  .char-name:empty { display: none; }
+  .char-name { font-family: 'Scheherazade New', serif; font-size: 22px; font-weight: 700; color: var(--gold-light); margin-bottom: 4px; cursor: pointer; outline: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+  .char-name:focus { border-bottom-color: var(--gold-dim); cursor: text; }
+  .char-name:empty:not(:focus)::before { content: '＋ أضف اسمك'; font-size: 13px; font-weight: 400; font-style: normal; color: var(--text-dim); opacity: 0.5; font-family: 'Amiri', serif; }
   .char-title { font-size: 15px; color: var(--text-dim); margin-bottom: 20px; font-style: italic; transition: all 0.5s; }
   .char-avatar { width: 90px; height: 90px; border: 2px solid var(--gold-dim); border-radius: 50%; margin: 0 auto 16px; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 40px; position: relative; box-shadow: 0 0 24px rgba(200,151,42,0.15); }
   .char-avatar::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid rgba(200,151,42,0.2); }
@@ -382,7 +383,7 @@
   <div class="view active" id="view-home">
     <div class="panel char-header">
       <div class="char-avatar">🧔</div>
-      <div class="char-name" id="charName"></div>
+      <div class="char-name" id="charName" contenteditable="true" spellcheck="false" dir="auto"></div>
       <div class="char-title" id="charTitle">—</div>
       <div class="level-badge"><span>المستوى</span><span class="level-num" id="levelNum">1</span></div>
       <div class="xp-section">
@@ -936,7 +937,19 @@ function updateHomeUI() {
   const { current, next } = getLevelData(xp);
   const xpNext = $('xpNext');
   const xpBarFill = $('xpBarFill');
-  $('charName').textContent = state.name || '';
+  const charName = $('charName');
+  if (document.activeElement !== charName) charName.textContent = state.name || '';
+  if (!charName._bound) {
+    charName._bound = true;
+    const saveName = () => {
+      const v = charName.textContent.trim();
+      state.name = v;
+      if (!v) charName.textContent = '';
+      saveState();
+    };
+    charName.addEventListener('blur', saveName);
+    charName.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); charName.blur(); } });
+  }
   $('charTitle').textContent = current.title;
   $('levelNum').textContent = current.level;
   $('xpCurrent').textContent = xp;
