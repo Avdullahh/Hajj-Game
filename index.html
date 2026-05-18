@@ -453,6 +453,22 @@
   </div>
 </div>
 
+<div class="flow-modal" id="adminModal">
+  <div class="flow-card" style="max-width:320px;text-align:center">
+    <div style="font-size:28px;margin-bottom:8px">⚠️</div>
+    <div class="flow-title" style="font-size:15px;margin-bottom:8px">Admin Area</div>
+    <div style="font-size:13px;color:var(--muted,#888);margin-bottom:20px;line-height:1.5">This area is for admin use only. Proceeding will permanently delete all data and log you out.</div>
+    <div id="adminPwWrap" style="display:none;margin-bottom:14px">
+      <input id="adminPwInput" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')adminSubmitPw()" style="width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border,#333);background:var(--card,#1a1a1a);color:var(--text,#fff);font-size:14px;box-sizing:border-box;outline:none;text-align:center">
+      <div id="adminPwError" style="display:none;color:#e55;font-size:12px;margin-top:6px">Incorrect password</div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="flow-primary" onclick="adminClose()" style="background:transparent;border:1.5px solid var(--border,#444);color:var(--text,#fff);flex:1">Close</button>
+      <button class="flow-primary" id="adminContinueBtn" onclick="adminContinue();this.onclick=adminSubmitPw;this.textContent='Confirm'" style="flex:1">Continue</button>
+    </div>
+  </div>
+</div>
+
 <div class="flow-modal" id="morningModal" dir="rtl">
   <div class="flow-card">
     <div class="flow-title">بداية اليوم</div>
@@ -650,7 +666,10 @@
       <div id="logContainer"><div class="empty">ما فيه أيام منتهية</div></div>
     </div>
     <div class="panel">
-      <div class="section-title">⚙️ إعدادات</div>
+      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>⚙️ إعدادات</span>
+        <span id="adminTap" onclick="handleAdminTap()" style="font-size:10px;color:var(--muted,#666);opacity:0.35;cursor:default;user-select:none;letter-spacing:0.5px">v1</span>
+      </div>
       <div style="display:flex;flex-direction:column;gap:12px">
         <div>
           <div class="setup-label" style="margin-bottom:6px">الاسم</div>
@@ -2293,6 +2312,31 @@ function buildDayPicker() {
 }
 
 // ── SETTINGS ──
+function handleAdminTap() {
+  document.getElementById('adminModal').classList.add('show');
+}
+function adminClose() {
+  document.getElementById('adminModal').classList.remove('show');
+  document.getElementById('adminPwWrap').style.display = 'none';
+  document.getElementById('adminPwInput').value = '';
+  document.getElementById('adminPwError').style.display = 'none';
+}
+function adminContinue() {
+  document.getElementById('adminPwWrap').style.display = 'block';
+  document.getElementById('adminPwInput').focus();
+}
+function adminSubmitPw() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === '876876') {
+    localStorage.clear();
+    location.replace('login.html');
+  } else {
+    document.getElementById('adminPwError').style.display = 'block';
+    document.getElementById('adminPwInput').value = '';
+    document.getElementById('adminPwInput').focus();
+  }
+}
+
 function resetData() {
   if (!confirm('سيتم مسح كل بيانات الموسم نهائياً. هل أنت متأكد؟')) return;
   localStorage.removeItem(STORAGE_KEY);
@@ -2514,7 +2558,7 @@ window.onload = () => {
   if(loadState()&&state.startDate){
     migratePhantomXP();
     syncTodayPhase(true);
-    viewDayIdx=getTodayIndex(); updateAllUI(); setTimeout(maybeShowMorningModal, 0);
+    viewDayIdx=getTodayIndex(); updateAllUI();
   } else {
     location.replace('login.html');
   }
