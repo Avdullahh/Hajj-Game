@@ -916,16 +916,19 @@ function isTaskNA(dayIdx, taskId) {
 
 function setTaskNA(taskId, reason, dayIdx = viewDayIdx) {
   if (isDaySubmitted(dayIdx)) return;
-  const map = ensureObject(ensureObject(state, 'todayNA'), dayIdx);
-  if (map[taskId]) return;
-  map[taskId] = { reason };
+  ensureObject(ensureObject(state, 'todayNA'), dayIdx)[taskId] = { reason };
   saveState();
+}
+
+function clearTaskNA(taskId, dayIdx = viewDayIdx) {
+  const map = (state.todayNA || {})[dayIdx];
+  if (map) { delete map[taskId]; saveState(); }
 }
 
 let _naPendingTask = null;
 
 function openNAPrompt(taskId, dayIdx = viewDayIdx) {
-  if (isDaySubmitted(dayIdx) || isTaskNA(dayIdx, taskId)) return;
+  if (isDaySubmitted(dayIdx)) return;
   _naPendingTask = { taskId, dayIdx };
   const input = $('naReasonInput');
   if (input) input.value = '';
@@ -1368,7 +1371,12 @@ function renderHomeTasks(dayIdx) {
       row.append(chk, txt);
 
       if (!submitted && isToday) {
-        if (!isNA) {
+        if (isNA) {
+          const undo = el('button', 'home-task-na-btn', '↩');
+          undo.title = 'استعد';
+          undo.onclick = e => { e.stopPropagation(); clearTaskNA(task.id, dayIdx); renderHomeTasks(dayIdx); updateHomeUI(); };
+          row.appendChild(undo);
+        } else {
           const naBtn = el('button', 'home-task-na-btn', '—');
           naBtn.title = 'لا ينطبق';
           naBtn.onclick = e => { e.stopPropagation(); openNAPrompt(task.id, dayIdx); };
@@ -1811,8 +1819,18 @@ function buildBinaryItem(task, isDone, pillar, submitted) {
   const xpSpan = el('span', 'task-xp', '+' + task.xp);
   item.append(chk, copy, xpSpan);
 
-  if (!submitted && !isNA) {
-    item.appendChild(buildActionBtns(task, pillar, item));
+  if (!submitted) {
+    if (isNA) {
+      const undoBtn = el('button', 'task-action-btn', '↩');
+      undoBtn.title = 'استعد للمهمة';
+      undoBtn.style.color = 'var(--gold-dim)';
+      undoBtn.onclick = () => { clearTaskNA(task.id); updateAllUI(); };
+      const actions = el('div', 'task-actions');
+      actions.appendChild(undoBtn);
+      item.appendChild(actions);
+    } else {
+      item.appendChild(buildActionBtns(task, pillar, item));
+    }
   }
   return item;
 }
