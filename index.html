@@ -1535,7 +1535,7 @@ function updateQuestUI() {
     container.appendChild(pillarDiv);
   });
 
-  const naMap = isDaySubmitted(viewDayIdx) ? (state.days[viewDayIdx]?.naMap||{}) : getNAMap(viewDayIdx);
+  const naMap = getNAMap(viewDayIdx);
   const { xp, extraXP, perfect } = calcDayXP(checks, pillars, naMap);
   const multiplier = getFollowupMultiplier(getSavedFollowupPoints() + extraXP);
   const levelXP = Math.round(xp * multiplier);
