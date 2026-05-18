@@ -120,7 +120,7 @@ The home screen gains a collapsible **"مهام اليوم"** section placed bel
 | Home screen action | Auto-completes task? | Reason |
 |---|---|---|
 | تثبيت بداية اليوم (check-in) | ✅ `checkin` | The action *is* the task |
-| إضافة ملاحظة (Add Note) | ✅ `close_note` only if it's a closing note | Direct evidence |
+| إضافة ملاحظة (Add Note) | ❌ No auto-complete | No way to distinguish a closing note from a regular note |
 | إغلاق اليوم (Close Day) | ✅ `close_note` | Closing the day is the task |
 | Quick Assessment | ❌ No auto-complete | Removed — tasks it completed are now removed or binary |
 
@@ -140,7 +140,7 @@ The home screen gains a collapsible **"مهام اليوم"** section placed bel
 ### الحضور والانضباط
 | ID | Text | Type | XP | Core |
 |----|------|------|----|------|
-| `checkin` | تثبيت بداية اليوم والاستعداد للعمل | Binary | 12 | ✅ |
+| `checkin` | حضور الاجتماع الصباحي و والاستعداد للعمل | Binary | 12 | ✅ |
 | `briefing` | فهم أولويات اليوم قبل الانشغال بالتفاصيل | Binary | 10 | ✅ |
 | `shift_ready` | هل أنهيت يومك بوضوح ذهني وراجعت ما تم وما لم يتم؟ | Binary | 18 | — |
 
@@ -173,5 +173,4 @@ The total is lower but the tasks are all genuinely completable. Combined with th
 
 - Counter-based partial tasks (deferred — no partial tasks remain after this redesign, counters are a future addition if needed)
 - Zone rounds log changes (unchanged)
-- RevenueCat / subscription logic (unrelated)
 - Any task added by the user as a custom task (custom tasks inherit the N/A mechanic automatically)
