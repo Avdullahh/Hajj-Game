@@ -903,13 +903,13 @@ function isTaskNA(dayIdx, taskId) {
 }
 
 function setTaskNA(taskId, reason) {
-  const dayIdx = getTodayIndex();
+  const dayIdx = viewDayIdx;
   ensureObject(ensureObject(state, 'todayNA'), dayIdx)[taskId] = { reason };
   saveState();
 }
 
 function clearTaskNA(taskId) {
-  const dayIdx = getTodayIndex();
+  const dayIdx = viewDayIdx;
   const map = (state.todayNA || {})[dayIdx];
   if (map) { delete map[taskId]; saveState(); }
 }
@@ -1665,7 +1665,9 @@ function updateQuestUI() {
   pillars.forEach(pillar => {
     let pillarXP = 0;
     let pillarMax = 0;
+    const naMap = getNAMap(viewDayIdx);
     pillar.tasks.forEach(t => {
+      if (naMap[t.id]) return;
       pillarMax += t.xp;
       pillarXP += earnedXP(t.xp, getCheckValue(checks, t.id));
     });
@@ -1718,7 +1720,7 @@ function updateQuestUI() {
 // ── BINARY TASK ──
 function buildBinaryItem(task, isDone, pillar, submitted) {
   const dayIdx = viewDayIdx;
-  const isNA = !submitted && isTaskNA(dayIdx, task.id);
+  const isNA = isTaskNA(dayIdx, task.id);
   const naData = isNA ? getNAMap(dayIdx)[task.id] : null;
 
   const item = el('div', 'task-item' + (isDone ? ' done' : '') + (isNA ? ' na' : ''));
@@ -1935,15 +1937,6 @@ function toggleBinary(taskId, xp, scope = 'base') {
   renderHomeTasks(viewDayIdx);
 }
 
-function setPartial(taskId, xp, pct, scope = 'base') {
-  ensureObject(ensureObject(state, 'todayChecks'), viewDayIdx)[taskId] = pct;
-  saveState();
-  if (pct > 0) {
-    showXPToast(xpToastText(earnedXP(xp, pct), scope));
-  }
-  updateQuestUI();
-}
-
 // ── SUBMIT ──
 function submitDay() {
   const pillars = getPillars();
@@ -1961,7 +1954,8 @@ function submitDay() {
 
   const coreTasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.core);
   const naMapSnapshot = getNAMap(viewDayIdx);
-  const coreComplete = coreTasks.filter(t => !naMapSnapshot[t.id]).every(t => getCheckValue(checks, t.id) === 100);
+  const applicableCoreTasks = coreTasks.filter(t => !naMapSnapshot[t.id]);
+  const coreComplete = applicableCoreTasks.length > 0 && applicableCoreTasks.every(t => getCheckValue(checks, t.id) === 100);
 
   const zoneRounds = cloneItems(getZoneRoundsForDay(viewDayIdx));
   const evidence = cloneItems(getEvidenceForDay(viewDayIdx));
@@ -2010,6 +2004,12 @@ function reopenDay() {
   ensureObject(state, 'todayChecks')[viewDayIdx] = restoredChecks;
   ensureObject(state, 'zoneRoundsDrafts')[viewDayIdx] = cloneItems(day.zoneRounds);
   ensureObject(state, 'evidenceDrafts')[viewDayIdx] = cloneItems(day.evidence);
+
+  // Restore NA map from snapshot so it survives reopen
+  const naMap = state.days[viewDayIdx]?.naMap;
+  if (naMap) {
+    ensureObject(state, 'todayNA')[viewDayIdx] = { ...naMap };
+  }
 
   // Recompute streak from scratch from submitted days
   delete state.days[viewDayIdx];
