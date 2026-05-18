@@ -459,16 +459,16 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="naModal">
-  <div class="modal-box">
-    <div class="modal-title">لا ينطبق اليوم</div>
-    <div class="modal-body">
-      <div class="flow-question-label" style="margin-bottom:8px">السبب (مطلوب)</div>
+<div class="flow-modal" id="naModal" dir="rtl">
+  <div class="flow-card">
+    <div class="flow-title">لا ينطبق اليوم</div>
+    <div class="flow-question">
+      <div class="flow-question-label">السبب (مطلوب)</div>
       <input type="text" id="naReasonInput" maxlength="80" placeholder="مثال: ما كانت فيه مشاكل اليوم"
-        class="setup-input" style="margin-bottom:0; text-align:right; width:100%; box-sizing:border-box;">
+        class="flow-textarea" style="height:auto; padding:8px 10px; font-size:14px;">
     </div>
-    <div class="modal-actions" style="display:flex;gap:8px;margin-top:12px;">
-      <button class="flow-secondary" style="flex:1" onclick="closeFlowModal('naModal')">إلغاء</button>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="flow-secondary" style="flex:1" onclick="closeNA()">إلغاء</button>
       <button class="flow-primary" style="flex:1" onclick="submitNA()">تأكيد</button>
     </div>
   </div>
@@ -901,6 +901,11 @@ function submitNA() {
   _naPendingTaskId = null;
   closeFlowModal('naModal');
   updateAllUI();
+}
+
+function closeNA() {
+  _naPendingTaskId = null;
+  closeFlowModal('naModal');
 }
 
 function getPillars(dayIdx = viewDayIdx) {
@@ -1762,10 +1767,6 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
     <textarea class="add-task-note" placeholder="ملاحظات المتابعة: خطوات، عوائق، أو مرجع الإتمام"></textarea>
     <div class="add-task-row2">
       <div class="add-task-partial-wrap">
-        <input type="checkbox" id="addPartialChk">
-        <label for="addPartialChk">نسبة الاتمام</label>
-      </div>
-      <div class="add-task-partial-wrap">
         <input type="checkbox" id="addAllDaysChk">
         <label for="addAllDaysChk">كل الأيام</label>
       </div>
@@ -1774,10 +1775,9 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
     </div>
   `;
   pillarDiv.appendChild(form);
-  const { inp, noteInput, partialInput, allDaysInput, submitBtn, cancelBtn } = controls(form, {
+  const { inp, noteInput, allDaysInput, submitBtn, cancelBtn } = controls(form, {
     inp: '.add-task-input',
     noteInput: '.add-task-note',
-    partialInput: '#addPartialChk',
     allDaysInput: '#addAllDaysChk',
     submitBtn: '.add-task-submit',
     cancelBtn: '.add-task-cancel-btn'
@@ -1786,7 +1786,7 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
     const text = inp.value.trim();
     const xp   = FOLLOWUP_TASK_POINTS;
     const note = noteInput.value.trim();
-    const partial = partialInput.checked;
+    const partial = false;
     const allDays = allDaysInput.checked;
     if (!text) return;
     const task = { id: makeId('custom_'), text, xp, partial, note };
