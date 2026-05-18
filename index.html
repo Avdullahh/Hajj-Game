@@ -1843,7 +1843,7 @@ function submitDay() {
 
   const coreTasks = BASE_PILLARS.flatMap(p => p.tasks).filter(t => t.core);
   const naMapSnapshot = getNAMap(viewDayIdx);
-  const coreComplete = coreTasks.every(t => naMapSnapshot[t.id] || getCheckValue(checks, t.id) === 100);
+  const coreComplete = coreTasks.filter(t => !naMapSnapshot[t.id]).every(t => getCheckValue(checks, t.id) === 100);
 
   const zoneRounds = cloneItems(getZoneRoundsForDay(viewDayIdx));
   const evidence = cloneItems(getEvidenceForDay(viewDayIdx));
