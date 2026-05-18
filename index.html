@@ -899,6 +899,7 @@ function getCheckValue(checks, taskId) {
 
 function autoComplete(taskId, val = 100) {
   const currentDayIdx = getTodayIndex();
+  if (isTaskNA(currentDayIdx, taskId)) return;
   ensureObject(ensureObject(state, 'todayChecks'), currentDayIdx)[taskId] = val;
   ensureObject(ensureObject(state, 'todayCheckTimestamps'), currentDayIdx)[taskId] = new Date().toISOString();
   saveState();
@@ -914,19 +915,18 @@ function isTaskNA(dayIdx, taskId) {
 }
 
 function setTaskNA(taskId, reason, dayIdx = viewDayIdx) {
-  ensureObject(ensureObject(state, 'todayNA'), dayIdx)[taskId] = { reason };
+  if (isDaySubmitted(dayIdx)) return;
+  const map = ensureObject(ensureObject(state, 'todayNA'), dayIdx);
+  if (map[taskId]) return;
+  map[taskId] = { reason };
   saveState();
 }
 
-function clearTaskNA(taskId, dayIdx = viewDayIdx) {
-  const map = (state.todayNA || {})[dayIdx];
-  if (map) { delete map[taskId]; saveState(); }
-}
+let _naPendingTask = null;
 
-let _naPendingTaskId = null;
-
-function openNAPrompt(taskId) {
-  _naPendingTaskId = taskId;
+function openNAPrompt(taskId, dayIdx = viewDayIdx) {
+  if (isDaySubmitted(dayIdx) || isTaskNA(dayIdx, taskId)) return;
+  _naPendingTask = { taskId, dayIdx };
   const input = $('naReasonInput');
   if (input) input.value = '';
   openFlowModal('naModal');
@@ -936,14 +936,16 @@ function openNAPrompt(taskId) {
 function submitNA() {
   const reason = ($('naReasonInput')?.value || '').trim();
   if (!reason) { $('naReasonInput')?.focus(); return; }
-  if (_naPendingTaskId) setTaskNA(_naPendingTaskId, reason);
-  _naPendingTaskId = null;
+  if (_naPendingTask && !isTaskNA(_naPendingTask.dayIdx, _naPendingTask.taskId)) {
+    setTaskNA(_naPendingTask.taskId, reason, _naPendingTask.dayIdx);
+  }
+  _naPendingTask = null;
   closeFlowModal('naModal');
   updateAllUI();
 }
 
 function closeNA() {
-  _naPendingTaskId = null;
+  _naPendingTask = null;
   closeFlowModal('naModal');
 }
 
@@ -1369,7 +1371,7 @@ function renderHomeTasks(dayIdx) {
         if (!isNA) {
           const naBtn = el('button', 'home-task-na-btn', '—');
           naBtn.title = 'لا ينطبق';
-          naBtn.onclick = e => { e.stopPropagation(); openNAPrompt(task.id); };
+          naBtn.onclick = e => { e.stopPropagation(); openNAPrompt(task.id, dayIdx); };
           row.appendChild(naBtn);
         }
       }
@@ -1547,7 +1549,8 @@ function confirmTaskNA() {
   if (!reason) { $('closingTaskNAReason')?.focus(); return; }
   const task = closingTasks[closingTaskIdx];
   if (!task) return;
-  setTaskNA(task.id, reason, getTodayIndex());
+  const currentDayIdx = getTodayIndex();
+  if (!isTaskNA(currentDayIdx, task.id)) setTaskNA(task.id, reason, currentDayIdx);
   closingTaskIdx++;
   renderClosingStep();
   updateAllUI();
@@ -1980,6 +1983,7 @@ function showAddForm(pillarId, togBtn, pillarDiv) {
 
 // ── TOGGLE / SET ──
 function toggleBinary(taskId, xp, scope = 'base') {
+  if (isTaskNA(viewDayIdx, taskId)) return;
   const dayChecks = ensureObject(ensureObject(state, 'todayChecks'), viewDayIdx);
   const cur = getCheckValue(dayChecks, taskId);
   const next = cur === 100 ? 0 : 100;
@@ -2026,7 +2030,6 @@ function submitDay() {
     multiplier, multiplierXP: levelXP - xp, perfect, coreComplete
   };
   delete state.todayChecks[viewDayIdx];
-  if (state.todayNA) delete state.todayNA[viewDayIdx];
   if (state.zoneRoundsDrafts) delete state.zoneRoundsDrafts[viewDayIdx];
   if (state.evidenceDrafts) delete state.evidenceDrafts[viewDayIdx];
   if (perfect) state.perfectDays = (state.perfectDays||0)+1;
@@ -2061,7 +2064,10 @@ function reopenDay() {
   // Restore NA map from snapshot so it survives reopen
   const naMap = state.days[viewDayIdx]?.naMap;
   if (naMap) {
-    ensureObject(state, 'todayNA')[viewDayIdx] = { ...naMap };
+    const todayNAMap = ensureObject(ensureObject(state, 'todayNA'), viewDayIdx);
+    Object.entries(naMap).forEach(([taskId, data]) => {
+      if (!todayNAMap[taskId]) todayNAMap[taskId] = data;
+    });
   }
 
   // Recompute streak from scratch from submitted days
