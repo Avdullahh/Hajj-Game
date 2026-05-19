@@ -695,20 +695,91 @@
 <script>
 const BASE_PILLARS = [
   { id: 'attendance', icon: '🕌', name: 'الحضور والانضباط', tasks: [
-    { id: 'checkin',     text: 'حضور الاجتماع الصباحي والاستعداد للعمل', xp: 12, partial: false, core: true },
-    { id: 'briefing',   text: 'فهم أولويات اليوم قبل الانشغال بالتفاصيل', xp: 10, partial: false, core: true },
-    { id: 'shift_ready', text: 'هل أنهيت يومك بوضوح ذهني وراجعت ما تم وما لم يتم؟', xp: 18, partial: false }
-  ]},
-  { id: 'facilities', icon: '🚶', name: 'الموقع والجولات', tasks: [
-    { id: 'corridor_crowding', text: 'مراجعة وجود ما يستحق الانتباه', xp: 8,  partial: false, readiness: true },
-    { id: 'fridge_empty',      text: 'التأكد من عدم ترك احتياج واضح بلا متابعة', xp: 8, partial: false, readiness: true },
-    { id: 'cleaning_weak',     text: 'مراجعة ما يحتاج متابعة لاحقة', xp: 8, partial: false, readiness: true }
+    { id: 'checkin',      text: 'حضور الاجتماع الصباحي والاستعداد للعمل', xp: 12, partial: false, core: true },
+    { id: 'briefing',     text: 'فهم أولويات اليوم قبل الانشغال بالتفاصيل', xp: 10, partial: false, core: true },
+    { id: 'shift_ready',  text: 'هل أنهيت يومك بوضوح ذهني وراجعت ما تم وما لم يتم؟', xp: 18, partial: false }
   ]},
   { id: 'reports', icon: '📋', name: 'التقارير والمتابعة', tasks: [
     { id: 'update',     text: 'إذا واجهت مشكلة — هل حاولت حلها؟ وإن لم تستطع، هل أوصلتها بوضوح مع مقترح لمسؤولك؟', xp: 22, partial: false, core: true, readiness: true },
     { id: 'close_note', text: 'مراجعة المفتوح قبل إغلاق اليوم', xp: 24, partial: false, core: true, readiness: true }
   ]}
 ];
+
+const DAY_EXTRA_PILLARS = {
+  0: [
+    { id: 'zone_d1', icon: '🏕️', name: 'الزون — اليوم الأول', tasks: [
+      { id: 'z1_survey', text: 'نظرة تشيكية على كامل المخيم', xp: 40, partial: true },
+      { id: 'z1_ac',     text: 'تشغيل جميع المكيفات داخل الخييم', xp: 40, partial: false },
+      { id: 'z1_tools',  text: 'طلب عدة النظافة والأدوات', xp: 20, partial: false },
+    ]},
+    { id: 'bath_d1', icon: '🚿', name: 'الحمامات — اليوم الأول', tasks: [
+      { id: 'b1_survey', text: 'نظرة تشيكية على كامل دورات المياه', xp: 80, partial: true },
+      { id: 'b1_tools',  text: 'طلب عدة النظافة والأدوات', xp: 20, partial: false },
+    ]},
+  ],
+  1: [
+    { id: 'zone_d2', icon: '🏕️', name: 'الزون — اليوم الثاني', tasks: [
+      { id: 'z2_walls',         text: 'تنظيف الجدران داخل الخييم', xp: 15, partial: true },
+      { id: 'z2_splitac',       text: 'تنظيف مكيفات السبليت داخل الخييم', xp: 15, partial: true },
+      { id: 'z2_maint_sticker', text: 'تلصيق ورقة ملخص الصيانة على كل الخييم (ورقة مخصصة لكل سيب)', xp: 30, partial: true },
+      { id: 'z2_maint_log',     text: 'تدوين جميع المشاكل الأساسية المتعلقة بفني الصيانة (مكيفات، أبواب، مراوح) في الورقة المخصصة للخيمة', xp: 30, partial: true },
+      { id: 'z2_extra',         text: 'طلب كمية إضافية تقديرية من مستلزمات الحجاج (أغطية، مخدات، الخ)', xp: 10, partial: false },
+    ]},
+    { id: 'bath_d2', icon: '🚿', name: 'الحمامات — اليوم الثاني', tasks: [
+      { id: 'b2_sticker_bath',   text: 'تلصيق ورقة ملخص الصيانة على كل الحمامات', xp: 25, partial: true },
+      { id: 'b2_sticker_shower', text: 'تلصيق ورقة ملخص الصيانة على كل المراوش', xp: 25, partial: true },
+      { id: 'b2_coord_women',    text: 'التنسيق مع مدير المركز وتحديد حمام النساء بشكل مبدئي', xp: 15, partial: false },
+      { id: 'b2_maint_log',      text: 'تدوين جميع المشاكل الأساسية المتعلقة بفني الصيانة على 50% من الحمامات (حمامات النساء) — جولة 1', xp: 25, partial: true },
+      { id: 'b2_clean1',         text: 'تنظيف الحمامات — شطفة اولى (مستوى نظافة مقبول)', xp: 10, partial: true },
+    ]},
+  ],
+  2: [
+    { id: 'zone_d3', icon: '🏕️', name: 'الزون — اليوم الثالث', tasks: [
+      { id: 'z3_beds50',    text: 'نظافة 50% من الأسرة داخل الخييم', xp: 40, partial: true },
+      { id: 'z3_sup50',     text: 'وجود جميع مستلزمات الحجاج على الأسرة النظيفة (٥٠% من إجمالي الأسرة)', xp: 20, partial: true },
+      { id: 'z3_minor_log', text: 'تدوين جميع المشاكل الثانوية المتعلقة بفني الصيانة (أفياش) في الورقة المخصصة للخيمة', xp: 15, partial: true },
+      { id: 'z3_tools_log', text: 'تدوين جميع الأدوات الناقصة داخل الخييم (حمال شنط، مكيفات)', xp: 15, partial: true },
+      { id: 'z3_numbering', text: 'تشبيك أرقام الخييم والأسرة', xp: 10, partial: true },
+    ]},
+    { id: 'bath_d3', icon: '🚿', name: 'الحمامات — اليوم الثالث', tasks: [
+      { id: 'b3_women_final', text: 'التنسيق مع مدير المركز وتحديد حمام النساء بشكل نهائي', xp: 10, partial: false },
+      { id: 'b3_men_r1',      text: 'تدوين جميع المشاكل الاساسية المتعلقة بفني الصيانة على بقية الحمامات (حمامات الرجال) — جولة 1', xp: 25, partial: true },
+      { id: 'b3_perimeter',   text: 'التشبيك على محيط الحمامات وتسجيل أي مشكلة جانبية (بروز في الأرضية، أغراض زائدة، اخرى)', xp: 15, partial: true },
+      { id: 'b3_women_done',  text: 'الانتهاء من صيانة حمامات النساء بشكل كامل', xp: 35, partial: true },
+      { id: 'b3_clean2',      text: 'تنظيف الحمامات — شطفة ثانية (مستوى نظافة جيد)', xp: 15, partial: true },
+    ]},
+  ],
+  3: [
+    { id: 'zone_d4', icon: '🏕️', name: 'الزون — اليوم الرابع', tasks: [
+      { id: 'z4_beds100', text: 'نظافة جميع الأسرة (100%) داخل الخييم', xp: 30, partial: true },
+      { id: 'z4_sup100',  text: 'وجود جميع مستلزمات الحجاج على الأسرة النظيفة (100% من إجمالي الأسرة)', xp: 30, partial: true },
+      { id: 'z4_boxes',   text: 'توزيع كراتين الشنط على الخييم (يجهز العدد الكامل داخل الخيمة، وتبقى داخل الكرتون بحيث يتم توزيعها يوم 6)', xp: 10, partial: true },
+      { id: 'z4_missing', text: 'طلب جميع النواقص من مستلزمات الحجاج', xp: 30, partial: true },
+    ]},
+    { id: 'bath_d4', icon: '🚿', name: 'الحمامات — اليوم الرابع', tasks: [
+      { id: 'b4_men_done',  text: 'الانتهاء من صيانة حمامات الرجال بشكل كامل', xp: 35, partial: true },
+      { id: 'b4_women_r2',  text: 'تدوين جميع المشاكل الاساسية المتعلقة بفني الصيانة على 50% من الحمامات (حمامات النساء) — جولة 2', xp: 15, partial: true },
+      { id: 'b4_perimeter', text: 'خلو محيط الحمام من أي مشاكل', xp: 15, partial: true },
+      { id: 'b4_supplies',  text: 'طلب مستلزمات الحمامات (مناديل، صوابين، الخ)', xp: 15, partial: true },
+      { id: 'b4_clean3',    text: 'تنظيف الحمامات — شطفة ثالثة (مستوى نظافة ممتاز — جاهز لاستقبال الحجاج)', xp: 20, partial: true },
+    ]},
+  ],
+  4: [
+    { id: 'zone_d5', icon: '🏕️', name: 'الزون — اليوم الخامس', tasks: [
+      { id: 'z5_corridors', text: 'نظافة الممرات', xp: 25, partial: true },
+      { id: 'z5_bins',      text: 'وجود سلات النفايات داخل الممرات', xp: 25, partial: false },
+      { id: 'z5_interior',  text: 'نظافة الخييم من الداخل', xp: 25, partial: true },
+      { id: 'z5_ready',     text: 'جاهزية وكفاءة الخييم (التأكد من اكتمال أعمال الصيانة)', xp: 25, partial: true },
+    ]},
+    { id: 'bath_d5', icon: '🚿', name: 'الحمامات — اليوم الخامس', tasks: [
+      { id: 'b5_men_r2',    text: 'تدوين جميع المشاكل الأساسية المتعلقة بفني الصيانة على 50% من الحمامات (حمامات الرجال) — جولة 2', xp: 15, partial: true },
+      { id: 'b5_bins',      text: 'وجود سلات النفايات داخل الحمامات', xp: 10, partial: false },
+      { id: 'b5_supplies',  text: 'وجود أدوات الحمام في الحمامات والمغاسل (صوابين، مناديل، الخ)', xp: 30, partial: true },
+      { id: 'b5_perimeter', text: 'خلو محيط الحمام من أي مشاكل', xp: 15, partial: true },
+      { id: 'b5_clean4',    text: 'تنظيف الحمامات — شطفة رابعة (مستوى نظافة ممتاز — جاهز لاستقبال الحجاج)', xp: 30, partial: true },
+    ]},
+  ],
+};
 
 const PERFECT_BONUS = 50;
 const FOLLOWUP_TASK_POINTS = 5;
@@ -1021,7 +1092,8 @@ function closeNA() {
 }
 
 function getPillars(dayIdx = viewDayIdx) {
-  return BASE_PILLARS.map(p => {
+  const allPillarDefs = [...(DAY_EXTRA_PILLARS[dayIdx] || []), ...BASE_PILLARS];
+  return allPillarDefs.map(p => {
     const tasks = p.tasks
       .filter(t => !(state.hiddenTasks||[]).includes(t.id))
       .map(t => { const ov = (state.taskOverrides||{})[t.id]; return ov ? {...t,...ov,_scope:'base'} : {...t,_scope:'base'}; });
@@ -1063,12 +1135,17 @@ function getDateForDay(idx) {
   return hLabel + ' · ' + gLabel;
 }
 
-function getBaseDayMaxXP() {
-  return BASE_PILLARS.flatMap(p => p.tasks).reduce((s, t) => s + t.xp, 0) + PERFECT_BONUS;
+function getBaseDayMaxXP(dayIdx = 0) {
+  const dayExtra = (DAY_EXTRA_PILLARS[dayIdx] || []).flatMap(p => p.tasks);
+  const base = BASE_PILLARS.flatMap(p => p.tasks);
+  return [...dayExtra, ...base].reduce((s, t) => s + t.xp, 0) + PERFECT_BONUS;
 }
 
 function getSeasonMaxXP() {
-  return getBaseDayMaxXP() * Math.max(1, parseInt(state.totalDays, 10) || 1);
+  const totalDays = Math.max(1, parseInt(state.totalDays, 10) || 1);
+  let total = 0;
+  for (let i = 0; i < totalDays; i++) total += getBaseDayMaxXP(i);
+  return total;
 }
 
 function getBalancedLevels() {
